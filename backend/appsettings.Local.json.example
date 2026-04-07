@@ -1,5 +1,5 @@
 {
   "ConnectionStrings": {
-    "LighthouseConnection": "Host=localhost;Port=5432;Database=lighthouse_sanctuary;Username=postgres;Password=admin;Include Error Detail=true"
+    "DefaultConnection": "Host=localhost;Port=5432;Database=lighthouse_sanctuary;Username=postgres;Password=admin;Include Error Detail=true"
   }
 }

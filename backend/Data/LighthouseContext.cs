@@ -11,6 +11,7 @@ public class LighthouseContext(DbContextOptions<LighthouseContext> options) : Db
     public DbSet<Donation> Donations => Set<Donation>();
     public DbSet<SocialMediaPost> SocialMediaPosts => Set<SocialMediaPost>();
     public DbSet<PublicImpactSnapshot> PublicImpactSnapshots => Set<PublicImpactSnapshot>();
+    public DbSet<AppUser> AppUsers => Set<AppUser>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -20,5 +21,6 @@ public class LighthouseContext(DbContextOptions<LighthouseContext> options) : Db
         modelBuilder.Entity<Donation>().ToTable("donations");
         modelBuilder.Entity<SocialMediaPost>().ToTable("social_media_posts");
         modelBuilder.Entity<PublicImpactSnapshot>().ToTable("public_impact_snapshots");
+        modelBuilder.Entity<AppUser>().ToTable("app_users");
     }
 }
