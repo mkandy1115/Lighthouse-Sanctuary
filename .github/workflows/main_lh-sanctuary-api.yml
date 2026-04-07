@@ -31,13 +31,13 @@ jobs:
           dotnet-version: '10.x'
 
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore .\Lighthouse.Sanctuary.Api.csproj
 
       - name: Build with dotnet
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build .\Lighthouse.Sanctuary.Api.csproj --configuration Release --no-restore
 
       - name: dotnet publish
-        run: dotnet publish -c Release -o "${{ github.workspace }}/backend-publish" --no-build
+        run: dotnet publish .\Lighthouse.Sanctuary.Api.csproj -c Release -o "${{ github.workspace }}/backend-publish" --no-build
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
