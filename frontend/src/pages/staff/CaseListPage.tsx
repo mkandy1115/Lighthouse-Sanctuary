@@ -246,16 +246,15 @@ export default function CaseListPage() {
   }
 
   async function handleDelete(resident: StaffResidentListItem) {
-    if (
-      !window.confirm(
-        `Remove participant ${resident.internalCode} (${resident.caseControlNo})? This cannot be undone.`,
-      )
-    ) {
-      return
-    }
+    const msg = [
+      'Are you sure you want to do this?',
+      '',
+      `This will permanently remove participant ${resident.internalCode} (${resident.caseControlNo}). This cannot be undone.`,
+    ].join('\n')
     try {
       setError('')
-      await deleteResident(resident.residentId)
+      const didDelete = await deleteResident(resident.residentId, msg)
+      if (!didDelete) return
       await reloadResidents()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to delete participant.')

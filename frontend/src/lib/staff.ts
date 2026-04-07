@@ -175,7 +175,21 @@ export function updateResident(id: string | number, payload: UpdateResidentPaylo
   })
 }
 
-export async function deleteResident(id: string | number): Promise<void> {
+const DEFAULT_DELETE_CONFIRM =
+  'Are you sure you want to do this? This action cannot be undone.'
+
+/**
+ * Deletes a resident after a browser confirmation prompt.
+ * @returns true if the row was deleted, false if the user cancelled.
+ */
+export async function deleteResident(
+  id: string | number,
+  confirmMessage: string = DEFAULT_DELETE_CONFIRM,
+): Promise<boolean> {
+  if (!window.confirm(confirmMessage)) {
+    return false
+  }
+
   const response = await fetch(`${getApiBaseUrl()}/api/residents/${id}`, {
     method: 'DELETE',
     headers: {
@@ -188,6 +202,7 @@ export async function deleteResident(id: string | number): Promise<void> {
       typeof data?.message === 'string' ? data.message : 'Unable to delete participant.',
     )
   }
+  return true
 }
 
 export interface SafehouseListItem {
