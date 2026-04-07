@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils'
 
 const navItems = [
   { label: 'Overview', to: '/admin', icon: BarChart2, end: true },
-  { label: 'Caseload', to: '/admin/cases', icon: Users },
+  { label: 'Participants (Caseload)', to: '/admin/cases', icon: Users },
   { label: 'Process Notes', to: '/admin/counseling', icon: ClipboardList },
   { label: 'Home Visits', to: '/admin/home-visits', icon: Home },
   { label: 'Conferences', to: '/admin/conferences', icon: CalendarClock },

@@ -33,9 +33,9 @@ export default function CaseDetailPage() {
 
   return (
     <div className="animate-fade-in max-w-5xl">
-      <Link to="/staff/cases" className="inline-flex items-center gap-1 text-brand-muted text-sm hover:text-brand-bronze mb-6 transition-colors">
+      <Link to="/admin/cases" className="inline-flex items-center gap-1 text-brand-muted text-sm hover:text-brand-bronze mb-6 transition-colors">
         <ArrowLeft className="w-3.5 h-3.5" />
-        Back to Cases
+        Back to participants
       </Link>
 
       <div className="grid md:grid-cols-3 gap-6 mb-6">

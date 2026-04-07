@@ -172,15 +172,38 @@ public class ResidentsController(LighthouseContext context) : ControllerBase
             return NotFound();
         }
 
+        resident.CaseControlNo = request.CaseControlNo.Trim();
+        resident.InternalCode = request.InternalCode.Trim();
+        resident.SafehouseId = request.SafehouseId;
         resident.CaseStatus = request.CaseStatus;
+        resident.Sex = request.Sex;
+        resident.DateOfBirth = request.DateOfBirth;
+        resident.DateOfAdmission = request.DateOfAdmission;
+        resident.CaseCategory = request.CaseCategory;
         resident.AssignedSocialWorker = request.AssignedSocialWorker;
+        resident.ReferralSource = request.ReferralSource;
         resident.CurrentRiskLevel = request.CurrentRiskLevel;
+        resident.InitialRiskLevel = request.InitialRiskLevel ?? resident.InitialRiskLevel;
+        resident.InitialCaseAssessment = request.InitialCaseAssessment;
         resident.ReintegrationStatus = request.ReintegrationStatus;
         resident.ReintegrationType = request.ReintegrationType;
-        resident.InitialCaseAssessment = request.InitialCaseAssessment;
         resident.NotesRestricted = request.NotesRestricted;
 
         await context.SaveChangesAsync();
         return Ok(resident);
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> DeleteResident(int id)
+    {
+        var resident = await context.Residents.FirstOrDefaultAsync(record => record.ResidentId == id);
+        if (resident is null)
+        {
+            return NotFound();
+        }
+
+        context.Residents.Remove(resident);
+        await context.SaveChangesAsync();
+        return NoContent();
     }
 }

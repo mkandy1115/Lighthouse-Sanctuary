@@ -143,10 +143,66 @@ export function getResident(id: string | number) {
 }
 
 export function createResident(payload: Record<string, unknown>) {
-  return api<StaffResidentListItem>('/api/residents', {
+  return api<Record<string, unknown>>('/api/residents', {
     method: 'POST',
     body: JSON.stringify(payload),
   })
+}
+
+export interface UpdateResidentPayload {
+  caseControlNo: string
+  internalCode: string
+  safehouseId: number
+  caseStatus: string
+  sex: string
+  dateOfBirth: string
+  dateOfAdmission: string
+  caseCategory?: string | null
+  assignedSocialWorker?: string | null
+  referralSource?: string | null
+  currentRiskLevel?: string | null
+  initialRiskLevel?: string | null
+  initialCaseAssessment?: string | null
+  reintegrationStatus?: string | null
+  reintegrationType?: string | null
+  notesRestricted?: string | null
+}
+
+export function updateResident(id: string | number, payload: UpdateResidentPayload) {
+  return api<Record<string, unknown>>(`/api/residents/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deleteResident(id: string | number): Promise<void> {
+  const response = await fetch(`${getApiBaseUrl()}/api/residents/${id}`, {
+    method: 'DELETE',
+    headers: {
+      ...getAuthorizationHeaders(),
+    },
+  })
+  if (!response.ok) {
+    const data = await response.json().catch(() => null)
+    throw new Error(
+      typeof data?.message === 'string' ? data.message : 'Unable to delete participant.',
+    )
+  }
+}
+
+export interface SafehouseListItem {
+  safehouseId: number
+  safehouseCode: string
+  name: string
+  region: string
+  city: string
+  province: string
+  country: string
+  status: string
+}
+
+export function getSafehouses() {
+  return api<SafehouseListItem[]>('/api/safehouses')
 }
 
 export function getSupporters() {
