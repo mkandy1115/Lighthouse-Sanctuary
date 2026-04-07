@@ -70,14 +70,6 @@ builder.Services.AddScoped<DatabaseBootstrapper>();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var bootstrapper = scope.ServiceProvider.GetRequiredService<DatabaseBootstrapper>();
-    var authSeedService = scope.ServiceProvider.GetRequiredService<AuthSeedService>();
-    await bootstrapper.InitializeAsync();
-    await authSeedService.SeedAsync();
-}
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
