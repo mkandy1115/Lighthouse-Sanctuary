@@ -7,13 +7,20 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: windows-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
+
+    defaults:
+      run:
+        working-directory: backend
 
     steps:
       - uses: actions/checkout@v4
@@ -23,30 +30,34 @@ jobs:
         with:
           dotnet-version: '10.x'
 
+      - name: Restore
+        run: dotnet restore
+
       - name: Build with dotnet
-        run: dotnet build --configuration Release
+        run: dotnet build --configuration Release --no-restore
 
       - name: dotnet publish
-        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+        run: dotnet publish -c Release -o "${{ github.workspace }}/backend-publish" --no-build
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          path: ${{ github.workspace }}/backend-publish
 
   deploy:
     runs-on: windows-latest
     needs: build
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: .net-app
+          path: ./backend-publish
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -61,5 +72,4 @@ jobs:
         with:
           app-name: 'lh-sanctuary-api'
           slot-name: 'Production'
-          package: .
-          
+          package: ./backend-publish
