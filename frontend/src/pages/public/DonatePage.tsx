@@ -11,7 +11,7 @@ const impacts = [
   { min: 1000, max: 2499, label: 'Funds two weeks of safe home residency for a survivor.' },
   { min: 2500, max: 4999, label: 'Sponsors a full month of shelter, meals, and counseling.' },
   { min: 5000, max: 9999, label: 'Covers one month of livelihood training for a graduate.' },
-  { min: 10000, max: Infinity, label: 'Sponsors a survivor's full 90-day reintegration program.' },
+  { min: 10000, max: Infinity, label: 'Sponsors a survivor\'s full 90-day reintegration program.' },
 ]
 
 function getImpact(amount: number): string {

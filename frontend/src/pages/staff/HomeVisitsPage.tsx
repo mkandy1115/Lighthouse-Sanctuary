@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { MapPin, Plus, Check, AlertTriangle, Clock } from 'lucide-react'
+import { Plus, Check, AlertTriangle, Clock } from 'lucide-react'
 
 const visits = [
   { id: '1', caseId: 'LH-2024-0042', firstName: 'Amara', scheduledDate: '2025-04-22', completedDate: null, staffName: 'Ana Reyes', status: 'scheduled', notes: '' },
