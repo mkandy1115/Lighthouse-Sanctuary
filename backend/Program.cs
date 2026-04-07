@@ -62,7 +62,7 @@ builder.Services.AddCors(options =>
                 "http://localhost:5174",
                 "https://localhost:5173",
                 "https://localhost:5174",
-                "https://calm-tree-0253d7010.1.azurestaticapps.net/")
+                "https://calm-tree-0253d7010.1.azurestaticapps.net")
             .AllowAnyHeader()
             .AllowAnyMethod()));
 
