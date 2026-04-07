@@ -3,3 +3,5 @@ export function AreaChart() {
 }
 
 export default AreaChart
+
+// added to check deployment
