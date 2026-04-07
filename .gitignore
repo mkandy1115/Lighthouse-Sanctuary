@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.DS_Store
+
+backend/bin/
+backend/obj/
+backend/appsettings.Local.json
+backend/.vs/
+
+*.user
+*.suo
+*.db
+*.sqlite

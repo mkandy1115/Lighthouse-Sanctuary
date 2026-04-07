@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Font imports via @fontsource — loaded in main.tsx if preferred over CDN */
+/* CSS custom properties for design tokens */
+:root {
+  --brand-bronze: #92642A;
+  --brand-teal: #2D8A8A;
+  --brand-cream: #FAFAF8;
+  --brand-stone: #F5F4F1;
+  --brand-charcoal: #1C1917;
+  --brand-border: #E5E3DF;
+}
+
+/* Base typography */
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #1C1917;
+  background: #FAFAF8;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Heading font */
+h1,
+h2,
+h3,
+.font-serif {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F5F4F1;
+}
+::-webkit-scrollbar-thumb {
+  background: #D6CFC6;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #A8A29E;
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid #92642A;
+  outline-offset: 2px;
+}
+
+/* Sensitive data mask */
+.sensitive-mask {
+  filter: blur(8px);
+  user-select: none;
+  transition: filter 0.3s ease;
+  cursor: pointer;
+}
+.sensitive-mask:hover {
+  filter: blur(4px);
+}
+.sensitive-revealed {
+  filter: none;
+}
+
+/* Timeline */
+.timeline-line {
+  background: linear-gradient(to bottom, #E5E3DF 0%, #E5E3DF 100%);
+}
+
+/* Chart tooltips */
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  border: 1px solid #E5E3DF !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 6px -1px rgba(28, 25, 23, 0.06) !important;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in {
+  animation: fadeIn 0.4s ease forwards;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #F5F4F1 25%,
+    #EAE8E4 50%,
+    #F5F4F1 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Sidebar dark scrollbar */
+.sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 2px;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white;
+  }
+}
