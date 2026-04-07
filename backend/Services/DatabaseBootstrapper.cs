@@ -113,12 +113,14 @@ public class DatabaseBootstrapper(
                                username text not null unique,
                                display_name text not null,
                                email text,
+                               supporter_id integer references supporters(supporter_id),
                                password_hash text not null,
                                role text not null check (role in ('Admin', 'Donor')),
                                is_active boolean not null default true,
                                created_at timestamp not null default now()
                            );
 
+                           alter table app_users add column if not exists supporter_id integer references supporters(supporter_id);
                            create index if not exists idx_app_users_username on app_users (username);
                            """;
 

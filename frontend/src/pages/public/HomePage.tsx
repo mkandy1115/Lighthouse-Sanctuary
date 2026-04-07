@@ -16,6 +16,7 @@ import SharedHeroSection from '@/components/shared/HeroSection'
 import ProgramCard from '@/components/shared/ProgramCard'
 import OutcomeMetric from '@/components/shared/OutcomeMetric'
 import DonorImpactCard from '@/components/shared/DonorImpactCard'
+import { formatUsdFromPhp } from '@/lib/formatters'
 
 // ─── Decorative SVG pattern ───────────────────────────────────────────────────
 function GeometricPattern() {
@@ -90,7 +91,7 @@ function HeroSection() {
           {[
             { label: '89 Residents Supported', Icon: Users },
             { label: '14 Active Programs', Icon: Star },
-            { label: '₱18M in Impact', Icon: TrendingUp },
+            { label: `${formatUsdFromPhp(18_000_000)} in Impact`, Icon: TrendingUp },
           ].map(({ label, Icon }) => (
             <div
               key={label}
@@ -270,7 +271,7 @@ function ImpactSection() {
           {[
             { stat: '327', label: 'Girls Supported', sub: 'since 2019' },
             { stat: '93%', label: 'Reintegration Success', sub: 'at 12-month follow-up' },
-            { stat: '₱42M', label: 'Total Impact', sub: 'in services delivered' },
+            { stat: formatUsdFromPhp(42_000_000), label: 'Total Impact', sub: 'in services delivered' },
           ].map(({ stat, label, sub }) => (
             <div
               key={label}

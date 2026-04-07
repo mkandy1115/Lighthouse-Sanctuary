@@ -1,8 +1,9 @@
-import React, { createContext, lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { createContext, lazy, Suspense } from 'react'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useRole } from '@/hooks/useRole'
 import type { UserRole } from '@/hooks/useRole'
-import AppShell from '@/components/AppShell'
+import CookieConsentBanner from '@/components/shared/CookieConsentBanner'
+import AdminShell from '@/components/layout/AdminShell'
 
 // ---------------------------------------------------------------------------
 // Role context — consumed by LoginPage and any component that needs the role
@@ -24,6 +25,7 @@ const ProgramsPage = lazy(() => import('@/pages/public/ProgramsPage'))
 const ImpactPage = lazy(() => import('@/pages/public/ImpactPage'))
 const DonatePage = lazy(() => import('@/pages/public/DonatePage'))
 const ContactPage = lazy(() => import('@/pages/public/ContactPage'))
+const PrivacyPage = lazy(() => import('@/pages/public/PrivacyPage'))
 
 // ---------------------------------------------------------------------------
 // Concept previews
@@ -64,6 +66,10 @@ const DonorDashboardPage = lazy(() => import('@/pages/donor/DashboardPage'))
 // Admin — single self-contained page with internal navigation
 // ---------------------------------------------------------------------------
 const AdminDashboardPage = lazy(() => import('@/pages/admin/DashboardPage'))
+const AdminUsersPage = lazy(() => import('@/pages/admin/UsersPage'))
+const AdminRolesPage = lazy(() => import('@/pages/admin/RolesPage'))
+const AdminAuditPage = lazy(() => import('@/pages/admin/AuditPage'))
+const AdminSettingsPage = lazy(() => import('@/pages/admin/SettingsPage'))
 
 // ---------------------------------------------------------------------------
 // Loading fallback
@@ -79,11 +85,10 @@ function PageLoader() {
   )
 }
 
-// ---------------------------------------------------------------------------
-// Shell wrapper — used for staff portal only
-// ---------------------------------------------------------------------------
-function StaffShell({ children }: { children: React.ReactNode }) {
-  return <AppShell role="staff">{children}</AppShell>
+function StaffRedirect() {
+  const location = useLocation()
+  const adminPath = `/admin${location.pathname.slice('/staff'.length)}${location.search}${location.hash}`
+  return <Navigate to={adminPath === '/admin' ? '/admin' : adminPath} replace />
 }
 
 // ---------------------------------------------------------------------------
@@ -96,6 +101,7 @@ export default function App() {
     <RoleContext.Provider value={{ role, setRole }}>
       <BrowserRouter>
         <Suspense fallback={<PageLoader />}>
+          <CookieConsentBanner />
           <Routes>
             {/* ── Public ─────────────────────────────────────────────────── */}
             <Route path="/" element={<HomePage />} />
@@ -104,6 +110,7 @@ export default function App() {
             <Route path="/impact" element={<ImpactPage />} />
             <Route path="/donate" element={<DonatePage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
 
             {/* ── Concept previews ───────────────────────────────────────── */}
             <Route path="/concepts/saas" element={<ConceptB />} />
@@ -111,68 +118,6 @@ export default function App() {
 
             {/* ── Auth ───────────────────────────────────────────────────── */}
             <Route path="/login" element={<LoginPage />} />
-
-            {/* ── Staff ──────────────────────────────────────────────────── */}
-            <Route
-              path="/staff"
-              element={<StaffShell><StaffDashboardPage /></StaffShell>}
-            />
-            <Route
-              path="/staff/cases"
-              element={<StaffShell><CaseListPage /></StaffShell>}
-            />
-            <Route
-              path="/staff/cases/:id"
-              element={<StaffShell><CaseDetailPage /></StaffShell>}
-            />
-            <Route
-              path="/staff/counseling"
-              element={<StaffShell><CounselingListPage /></StaffShell>}
-            />
-            <Route
-              path="/staff/counseling/:id"
-              element={<StaffShell><CounselingDetailPage /></StaffShell>}
-            />
-            <Route
-              path="/staff/home-visits"
-              element={<StaffShell><HomeVisitsPage /></StaffShell>}
-            />
-            <Route
-              path="/staff/interventions"
-              element={<StaffShell><InterventionsPage /></StaffShell>}
-            />
-            <Route
-              path="/staff/conferences"
-              element={<StaffShell><ConferencesPage /></StaffShell>}
-            />
-            <Route
-              path="/staff/outcomes"
-              element={<StaffShell><OutcomesPage /></StaffShell>}
-            />
-            <Route
-              path="/staff/donors"
-              element={<StaffShell><StaffDonorListPage /></StaffShell>}
-            />
-            <Route
-              path="/staff/donors/:id"
-              element={<StaffShell><StaffDonorProfilePage /></StaffShell>}
-            />
-            <Route
-              path="/staff/campaigns"
-              element={<StaffShell><CampaignsPage /></StaffShell>}
-            />
-            <Route
-              path="/staff/social"
-              element={<StaffShell><SocialMediaPage /></StaffShell>}
-            />
-            <Route
-              path="/staff/reports"
-              element={<StaffShell><ReportsPage /></StaffShell>}
-            />
-            <Route
-              path="/staff/settings"
-              element={<StaffShell><StaffSettingsPage /></StaffShell>}
-            />
 
             {/* ── Donor portal — has its own layout (top bar + sidebar) ──── */}
             <Route path="/donor" element={<DonorDashboardPage />} />
@@ -182,12 +127,32 @@ export default function App() {
             <Route path="/donor/messages" element={<DonorDashboardPage />} />
             <Route path="/donor/profile" element={<DonorDashboardPage />} />
 
-            {/* ── Admin — has its own layout (top bar + sidebar) ─────────── */}
-            <Route path="/admin" element={<AdminDashboardPage />} />
-            <Route path="/admin/users" element={<AdminDashboardPage />} />
-            <Route path="/admin/roles" element={<AdminDashboardPage />} />
-            <Route path="/admin/audit" element={<AdminDashboardPage />} />
-            <Route path="/admin/settings" element={<AdminDashboardPage />} />
+            {/* ── Admin + staff workspace — single unified layout ────────── */}
+            <Route path="/admin" element={<AdminShell />}>
+              <Route index element={<AdminDashboardPage />} />
+              <Route path="cases" element={<CaseListPage />} />
+              <Route path="cases/:id" element={<CaseDetailPage />} />
+              <Route path="counseling" element={<CounselingListPage />} />
+              <Route path="counseling/:id" element={<CounselingDetailPage />} />
+              <Route path="home-visits" element={<HomeVisitsPage />} />
+              <Route path="interventions" element={<InterventionsPage />} />
+              <Route path="conferences" element={<ConferencesPage />} />
+              <Route path="outcomes" element={<OutcomesPage />} />
+              <Route path="donors" element={<StaffDonorListPage />} />
+              <Route path="donors/:id" element={<StaffDonorProfilePage />} />
+              <Route path="campaigns" element={<CampaignsPage />} />
+              <Route path="social" element={<SocialMediaPage />} />
+              <Route path="reports" element={<ReportsPage />} />
+              <Route path="users" element={<AdminUsersPage />} />
+              <Route path="roles" element={<AdminRolesPage />} />
+              <Route path="audit" element={<AdminAuditPage />} />
+              <Route path="settings" element={<AdminSettingsPage />} />
+              <Route path="staff-dashboard" element={<StaffDashboardPage />} />
+              <Route path="staff-settings" element={<StaffSettingsPage />} />
+            </Route>
+
+            {/* ── Legacy staff URLs redirect into admin workspace ────────── */}
+            <Route path="/staff/*" element={<StaffRedirect />} />
           </Routes>
         </Suspense>
       </BrowserRouter>

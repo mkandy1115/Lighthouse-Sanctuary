@@ -37,11 +37,22 @@ public class AuthSeedService(
                 continue;
             }
 
+            int? supporterId = null;
+            if (seedUser.Role.Equals("Donor", StringComparison.OrdinalIgnoreCase)
+                && !string.IsNullOrWhiteSpace(seedUser.Email))
+            {
+                supporterId = await context.Supporters
+                    .Where(supporter => supporter.Email != null && supporter.Email.ToLower() == seedUser.Email.ToLower())
+                    .Select(supporter => (int?)supporter.SupporterId)
+                    .FirstOrDefaultAsync();
+            }
+
             var appUser = new AppUser
             {
                 Username = seedUser.Username,
                 DisplayName = seedUser.DisplayName,
                 Email = seedUser.Email,
+                SupporterId = supporterId,
                 Role = seedUser.Role,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow

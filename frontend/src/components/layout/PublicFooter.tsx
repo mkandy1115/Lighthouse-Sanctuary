@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react'
+import { openCookiePreferences } from '@/lib/cookies'
 
 const programLinks = [
   { label: 'Residential Safe Homes', to: '/programs' },
@@ -132,7 +133,10 @@ export default function PublicFooter() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-brand-muted-light">
           <p>© 2025 Imari: Safe Haven. All rights reserved. Registered NGO — Ghana.</p>
           <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+            <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <button type="button" onClick={openCookiePreferences} className="hover:text-white transition-colors">
+              Cookie Settings
+            </button>
             <a href="#" className="hover:text-white transition-colors">Terms of Use</a>
             <a href="#" className="hover:text-white transition-colors">Accessibility</a>
           </div>

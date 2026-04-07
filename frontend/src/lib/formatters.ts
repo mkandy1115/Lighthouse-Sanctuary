@@ -1,5 +1,7 @@
 import { format, formatDistanceToNow, parseISO, isValid } from 'date-fns'
 
+const PHP_TO_USD_RATE = Number(import.meta.env.VITE_PHP_TO_USD_RATE ?? '0.018')
+
 /**
  * Format a number as currency.
  * Defaults to USD ($). Pass 'PHP' for Philippine Peso (₱).
@@ -74,6 +76,19 @@ export function formatPhilippinePeso(amount: number): string {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount)}`
+}
+
+export function convertPhpToUsd(amountPhp: number): number {
+  return amountPhp * PHP_TO_USD_RATE
+}
+
+export function convertUsdToPhp(amountUsd: number): number {
+  if (PHP_TO_USD_RATE <= 0) return amountUsd
+  return amountUsd / PHP_TO_USD_RATE
+}
+
+export function formatUsdFromPhp(amountPhp: number): string {
+  return formatCurrency(convertPhpToUsd(amountPhp), 'USD')
 }
 
 /**

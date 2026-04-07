@@ -1,8 +1,9 @@
-import { useContext } from 'react'
+import { useContext, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { RoleContext } from '@/App'
 import type { UserRole } from '@/hooks/useRole'
-import { ArrowRight, Users, LayoutDashboard, ShieldCheck } from 'lucide-react'
+import { login, saveAuthSession } from '@/lib/auth'
+import { ArrowRight, LayoutDashboard, ShieldCheck, LoaderCircle } from 'lucide-react'
 
 const demoRoles: {
   value: UserRole
@@ -21,17 +22,9 @@ const demoRoles: {
     path: '/donor',
   },
   {
-    value: 'staff',
-    label: 'Enter as Staff',
-    description: 'Case management, counseling, home visits, and more',
-    icon: Users,
-    color: 'hover:border-brand-teal hover:bg-brand-teal-muted',
-    path: '/staff',
-  },
-  {
     value: 'admin',
-    label: 'Enter as Manager',
-    description: 'OKRs, participant data, donor oversight, social analytics',
+    label: 'Enter Admin Portal',
+    description: 'Operations, participant care, donor oversight, and reporting',
     icon: ShieldCheck,
     color: 'hover:border-slate-400 hover:bg-slate-50',
     path: '/admin',
@@ -41,10 +34,41 @@ const demoRoles: {
 export default function LoginPage() {
   const { setRole } = useContext(RoleContext)
   const navigate = useNavigate()
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   function enterAs(role: UserRole, path: string) {
     setRole(role)
     navigate(path)
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError('')
+
+    const normalizedUsername = username.trim()
+    if (!normalizedUsername || !password.trim()) {
+      setError('Enter both username and password.')
+      return
+    }
+
+    try {
+      setIsSubmitting(true)
+      const session = await login(normalizedUsername, password)
+      saveAuthSession(session)
+
+      const role = session.user.role === 'Admin' ? 'admin' : 'donor'
+      const path = role === 'admin' ? '/admin' : '/donor'
+
+      setRole(role)
+      navigate(path)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to sign in right now.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -126,15 +150,18 @@ export default function LoginPage() {
           </div>
 
           {/* Email/password form */}
-          <form className="space-y-4 mb-8">
+          <form className="space-y-4 mb-8" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm font-medium text-brand-charcoal mb-1.5">
-                Email Address
+                Username
               </label>
               <input
-                type="email"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 className="w-full border border-brand-border rounded-lg px-4 py-3 text-sm bg-white text-brand-charcoal focus:outline-none focus:ring-2 focus:ring-brand-bronze/30 focus:border-brand-bronze placeholder:text-brand-muted-light"
-                placeholder="you@imarighana.org"
+                placeholder="admin or donor"
+                autoComplete="username"
               />
             </div>
             <div>
@@ -143,16 +170,41 @@ export default function LoginPage() {
               </label>
               <input
                 type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full border border-brand-border rounded-lg px-4 py-3 text-sm bg-white text-brand-charcoal focus:outline-none focus:ring-2 focus:ring-brand-bronze/30 focus:border-brand-bronze"
                 placeholder="••••••••"
+                autoComplete="current-password"
               />
             </div>
+            {error && (
+              <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                {error}
+              </div>
+            )}
             <button
-              type="button"
-              className="w-full bg-brand-charcoal text-white font-semibold py-3 rounded-lg hover:bg-slate-800 transition-colors text-sm"
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full inline-flex items-center justify-center gap-2 bg-brand-charcoal text-white font-semibold py-3 rounded-lg hover:bg-slate-800 transition-colors text-sm disabled:opacity-70"
             >
-              Sign In
+              {isSubmitting ? (
+                <>
+                  <LoaderCircle className="w-4 h-4 animate-spin" />
+                  Signing In
+                </>
+              ) : (
+                'Sign In'
+              )}
             </button>
+            <div className="rounded-lg border border-brand-border bg-white px-4 py-3 text-xs text-brand-muted">
+              Demo credentials:
+              {' '}
+              <span className="font-semibold text-brand-charcoal">admin / Admin123!</span>
+              {' '}
+              or
+              {' '}
+              <span className="font-semibold text-brand-charcoal">donor / Donor123!</span>
+            </div>
             <p className="text-center text-xs text-brand-muted">
               <a href="mailto:admin@imarighana.org" className="text-brand-bronze hover:underline">
                 Need access? Contact your administrator

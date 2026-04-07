@@ -1,12 +1,13 @@
 import PublicNav from '@/components/layout/PublicNav'
 import PublicFooter from '@/components/layout/PublicFooter'
 import { TrendingUp, Home, BookOpen, Briefcase, Heart, ArrowRight } from 'lucide-react'
+import { formatUsdFromPhp } from '@/lib/formatters'
 
 const stats = [
   { value: '2,400+', label: 'Survivors Served', sub: 'since 2010' },
   { value: '94%', label: 'Program Completion', sub: 'of enrolled residents' },
   { value: '78%', label: 'Stable Housing', sub: 'at 12-month follow-up' },
-  { value: '₵18M', label: 'Community Investment', sub: 'in livelihood programs' },
+  { value: formatUsdFromPhp(18_000_000), label: 'Community Investment', sub: 'in livelihood programs' },
 ]
 
 const outcomes = [

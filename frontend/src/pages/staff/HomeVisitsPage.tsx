@@ -1,124 +1,145 @@
-import { useState } from 'react'
-import { Plus, Check, AlertTriangle, Clock } from 'lucide-react'
-
-const visits = [
-  { id: '1', caseId: 'LH-2024-0042', firstName: 'Amara', scheduledDate: '2025-04-22', completedDate: null, staffName: 'Ana Reyes', status: 'scheduled', notes: '' },
-  { id: '2', caseId: 'LH-2024-0031', firstName: 'Akua', scheduledDate: '2025-04-10', completedDate: '2025-04-10', staffName: 'Kofi Asante', status: 'completed', notes: 'Client settled well, employment is stable. No safety concerns observed.' },
-  { id: '3', caseId: 'LH-2024-0019', firstName: 'Nana', scheduledDate: '2025-04-08', completedDate: null, staffName: 'Ana Reyes', status: 'overdue', notes: '' },
-  { id: '4', caseId: 'LH-2024-0026', firstName: 'Serwa', scheduledDate: '2025-03-28', completedDate: '2025-03-28', staffName: 'Abena Owusu', status: 'completed', notes: 'Housing secure. Savings group participation confirmed.' },
-  { id: '5', caseId: 'LH-2024-0051', firstName: 'Adwoa', scheduledDate: '2025-04-25', completedDate: null, staffName: 'Kofi Asante', status: 'scheduled', notes: '' },
-]
-
-const statusMeta: Record<string, { bg: string; text: string; icon: React.ComponentType<{ className?: string }>; label: string }> = {
-  scheduled: { bg: 'bg-amber-50',  text: 'text-amber-700',  icon: Clock,          label: 'Scheduled' },
-  completed: { bg: 'bg-brand-teal-muted', text: 'text-brand-teal', icon: Check, label: 'Completed' },
-  overdue:   { bg: 'bg-rose-50',   text: 'text-rose-700',   icon: AlertTriangle,  label: 'Overdue'   },
-}
+import { useEffect, useMemo, useState } from 'react'
+import Modal from '@/components/ui/Modal'
+import { createHomeVisitation, getHomeVisitations, getResidents, type HomeVisitationItem, type StaffResidentListItem } from '@/lib/staff'
+import { formatDate } from '@/lib/formatters'
 
 export default function HomeVisitsPage() {
+  const [visits, setVisits] = useState<HomeVisitationItem[]>([])
+  const [residents, setResidents] = useState<StaffResidentListItem[]>([])
+  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
   const [filter, setFilter] = useState('all')
-  const [newAlert, setNewAlert] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [form, setForm] = useState({
+    residentId: '',
+    visitDate: new Date().toISOString().slice(0, 10),
+    socialWorker: '',
+    visitType: 'Routine Follow-Up',
+    locationVisited: '',
+    purpose: '',
+    observations: '',
+    familyCooperationLevel: 'Cooperative',
+    followUpNotes: '',
+    visitOutcome: 'Favorable',
+  })
 
-  const filtered = filter === 'all' ? visits : visits.filter((v) => v.status === filter)
-  const overdueCnt = visits.filter((v) => v.status === 'overdue').length
+  useEffect(() => {
+    async function load() {
+      try {
+        setIsLoading(true)
+        const [visitData, residentData] = await Promise.all([getHomeVisitations(), getResidents()])
+        setVisits(visitData)
+        setResidents(residentData)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unable to load home visits.')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    load()
+  }, [])
+
+  const filtered = useMemo(() => {
+    if (filter === 'all') return visits
+    return visits.filter((visit) => (visit.followUpNeeded ? 'needs-follow-up' : 'completed') === filter)
+  }, [filter, visits])
+
+  async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const created = await createHomeVisitation({
+      residentId: Number(form.residentId),
+      visitDate: form.visitDate,
+      socialWorker: form.socialWorker,
+      visitType: form.visitType,
+      locationVisited: form.locationVisited,
+      purpose: form.purpose,
+      observations: form.observations,
+      familyCooperationLevel: form.familyCooperationLevel,
+      safetyConcernsNoted: false,
+      followUpNeeded: Boolean(form.followUpNotes),
+      followUpNotes: form.followUpNotes,
+      visitOutcome: form.visitOutcome,
+    })
+    setVisits((current) => [created, ...current])
+    setIsModalOpen(false)
+  }
 
   return (
     <div className="animate-fade-in">
+      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)} title="Log Home Visitation">
+        <form onSubmit={handleCreate} className="space-y-4">
+          <select value={form.residentId} onChange={(e) => setForm((f) => ({ ...f, residentId: e.target.value }))} className="w-full rounded-lg border border-brand-border px-4 py-3 text-sm">
+            <option value="">Select resident</option>
+            {residents.map((resident) => (
+              <option key={resident.residentId} value={resident.residentId}>
+                {resident.caseControlNo} · {resident.internalCode}
+              </option>
+            ))}
+          </select>
+          <div className="grid grid-cols-2 gap-3">
+            <input type="date" value={form.visitDate} onChange={(e) => setForm((f) => ({ ...f, visitDate: e.target.value }))} className="rounded-lg border border-brand-border px-4 py-3 text-sm" />
+            <input value={form.socialWorker} onChange={(e) => setForm((f) => ({ ...f, socialWorker: e.target.value }))} placeholder="Social worker" className="rounded-lg border border-brand-border px-4 py-3 text-sm" />
+          </div>
+          <input value={form.locationVisited} onChange={(e) => setForm((f) => ({ ...f, locationVisited: e.target.value }))} placeholder="Location visited" className="w-full rounded-lg border border-brand-border px-4 py-3 text-sm" />
+          <textarea value={form.observations} onChange={(e) => setForm((f) => ({ ...f, observations: e.target.value }))} placeholder="Observations" className="w-full rounded-lg border border-brand-border px-4 py-3 text-sm min-h-24" />
+          <textarea value={form.followUpNotes} onChange={(e) => setForm((f) => ({ ...f, followUpNotes: e.target.value }))} placeholder="Follow-up notes" className="w-full rounded-lg border border-brand-border px-4 py-3 text-sm min-h-24" />
+          <button className="w-full rounded-lg bg-brand-bronze px-4 py-3 text-sm font-semibold text-white">Save Home Visit</button>
+        </form>
+      </Modal>
+
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-serif text-3xl text-brand-charcoal">Home Visits</h1>
-          <p className="text-brand-muted text-sm mt-1">
-            Welfare checks and follow-up visits for transitioned clients
-          </p>
+          <h1 className="font-serif text-3xl text-brand-charcoal">Home Visitation & Follow-Up</h1>
+          <p className="text-brand-muted text-sm mt-1">Field visits, reintegration checks, and family observations</p>
         </div>
-        <button
-          onClick={() => setNewAlert(true)}
-          className="inline-flex items-center gap-2 bg-brand-bronze text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-brand-bronze-light transition-colors shadow-bronze"
-        >
-          <Plus className="w-4 h-4" />
-          Schedule Visit
+        <button onClick={() => setIsModalOpen(true)} className="inline-flex items-center gap-2 bg-brand-bronze text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-brand-bronze-light transition-colors shadow-bronze">
+          + Log Visit
         </button>
       </div>
 
-      {newAlert && (
-        <div className="mb-4 flex items-center gap-2 bg-brand-teal-muted border border-brand-teal/20 rounded-lg px-4 py-3 text-sm text-brand-teal font-medium">
-          Visit scheduling would open an assignment form in the full system.
-          <button onClick={() => setNewAlert(false)} className="ml-auto text-brand-teal/70">✕</button>
-        </div>
-      )}
-
-      {overdueCnt > 0 && (
-        <div className="mb-5 flex items-center gap-3 bg-rose-50 border border-rose-200 rounded-xl px-4 py-3">
-          <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
-          <p className="text-sm text-rose-800">
-            <span className="font-semibold">{overdueCnt} visit{overdueCnt > 1 ? 's' : ''} overdue.</span>{' '}
-            Prioritize scheduling to keep aftercare plans on track.
-          </p>
-        </div>
-      )}
-
-      {/* Filter tabs */}
       <div className="flex bg-brand-stone rounded-lg p-1 mb-5 w-fit gap-0.5">
-        {['all', 'scheduled', 'overdue', 'completed'].map((v) => (
+        {[
+          { value: 'all', label: 'All' },
+          { value: 'completed', label: 'Completed' },
+          { value: 'needs-follow-up', label: 'Needs Follow-up' },
+        ].map((item) => (
           <button
-            key={v}
-            onClick={() => setFilter(v)}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium capitalize transition-all ${
-              filter === v
-                ? 'bg-white text-brand-charcoal shadow-sm'
-                : 'text-brand-muted hover:text-brand-charcoal'
+            key={item.value}
+            onClick={() => setFilter(item.value)}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+              filter === item.value ? 'bg-white text-brand-charcoal shadow-sm' : 'text-brand-muted hover:text-brand-charcoal'
             }`}
           >
-            {v === 'all' ? 'All' : v.charAt(0).toUpperCase() + v.slice(1)}
+            {item.label}
           </button>
         ))}
       </div>
 
-      {/* Table */}
+      {error && <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
+
       <div className="bg-white border border-brand-border rounded-xl overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-brand-stone border-b border-brand-border">
-              {['Case', 'Participant', 'Scheduled', 'Staff', 'Status', 'Notes'].map((h) => (
-                <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider">
-                  {h}
-                </th>
+              {['Case', 'Visit Date', 'Type', 'Social Worker', 'Outcome', 'Follow-up'].map((h) => (
+                <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider">{h}</th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-brand-border">
-            {filtered.map((v) => {
-              const meta = statusMeta[v.status]
-              const Icon = meta.icon
-              return (
-                <tr key={v.id} className="hover:bg-brand-cream transition-colors">
-                  <td className="px-4 py-3.5 font-mono text-xs text-brand-muted">{v.caseId}</td>
-                  <td className="px-4 py-3.5">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-brand-stone flex items-center justify-center text-xs font-semibold text-brand-charcoal">
-                        {v.firstName[0]}
-                      </div>
-                      <span className="font-medium text-brand-charcoal">{v.firstName}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3.5 text-brand-muted text-xs">
-                    {new Date(v.scheduledDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                  </td>
-                  <td className="px-4 py-3.5 text-brand-muted text-sm">{v.staffName}</td>
-                  <td className="px-4 py-3.5">
-                    <span className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full ${meta.bg} ${meta.text}`}>
-                      <Icon className="w-3 h-3" />
-                      {meta.label}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3.5 text-xs text-brand-muted italic max-w-xs truncate">
-                    {v.notes || '—'}
-                  </td>
-                </tr>
-              )
-            })}
+          <tbody>
+            {!isLoading && filtered.map((visit) => (
+              <tr key={visit.visitationId} className="hover:bg-brand-cream transition-colors border-b border-brand-border">
+                <td className="px-4 py-3.5 font-mono text-xs text-brand-muted">{visit.residentCaseControlNo ?? '—'}</td>
+                <td className="px-4 py-3.5 text-brand-muted">{formatDate(visit.visitDate)}</td>
+                <td className="px-4 py-3.5 text-brand-charcoal">{visit.visitType ?? '—'}</td>
+                <td className="px-4 py-3.5 text-brand-muted">{visit.socialWorker ?? '—'}</td>
+                <td className="px-4 py-3.5 text-brand-charcoal">{visit.visitOutcome ?? '—'}</td>
+                <td className="px-4 py-3.5 text-brand-muted">{visit.followUpNeeded ? visit.followUpNotes ?? 'Yes' : 'None'}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
+        {isLoading && <div className="px-4 py-10 text-center text-brand-muted">Loading home visitations…</div>}
       </div>
     </div>
   )

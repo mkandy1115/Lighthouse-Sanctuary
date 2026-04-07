@@ -17,6 +17,7 @@ dist-ssr/
 # Backend artifacts
 backend/bin/
 backend/obj/
+backend/.env
 backend/appsettings.Local.json
 backend/.vs/
 

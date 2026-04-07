@@ -19,6 +19,9 @@ public class AppUser
     [Column("email")]
     public string? Email { get; set; }
 
+    [Column("supporter_id")]
+    public int? SupporterId { get; set; }
+
     [Column("password_hash")]
     public string PasswordHash { get; set; } = string.Empty;
 

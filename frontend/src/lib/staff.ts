@@ -1,0 +1,197 @@
+import { getApiBaseUrl, getAuthorizationHeaders } from '@/lib/auth'
+
+async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(`${getApiBaseUrl()}${path}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthorizationHeaders(),
+      ...(init?.headers ?? {}),
+    },
+    ...init,
+  })
+
+  const data = await response.json().catch(() => null)
+  if (!response.ok) {
+    throw new Error(data?.message ?? 'Unable to load staff data right now.')
+  }
+
+  return data as T
+}
+
+export interface StaffResidentListItem {
+  residentId: number
+  caseControlNo: string
+  internalCode: string
+  safehouseId: number
+  safehouseName: string
+  caseStatus: string
+  caseCategory?: string | null
+  assignedSocialWorker?: string | null
+  currentRiskLevel?: string | null
+  dateOfAdmission: string
+  presentAge?: string | null
+  tags: string[]
+}
+
+export interface ProcessRecordingItem {
+  recordingId: number
+  residentId: number
+  residentCaseControlNo?: string | null
+  residentInternalCode?: string | null
+  sessionDate: string
+  socialWorker?: string | null
+  sessionType?: string | null
+  sessionDurationMinutes?: number | null
+  emotionalStateObserved?: string | null
+  emotionalStateEnd?: string | null
+  sessionNarrative?: string | null
+  interventionsApplied?: string | null
+  followUpActions?: string | null
+  progressNoted: boolean
+  concernsFlagged: boolean
+  referralMade: boolean
+}
+
+export interface HomeVisitationItem {
+  visitationId: number
+  residentId: number
+  residentCaseControlNo?: string | null
+  residentInternalCode?: string | null
+  visitDate: string
+  socialWorker?: string | null
+  visitType?: string | null
+  locationVisited?: string | null
+  familyMembersPresent?: string | null
+  purpose?: string | null
+  observations?: string | null
+  familyCooperationLevel?: string | null
+  safetyConcernsNoted: boolean
+  followUpNeeded: boolean
+  followUpNotes?: string | null
+  visitOutcome?: string | null
+}
+
+export interface InterventionPlanItem {
+  planId: number
+  residentId: number
+  planCategory?: string | null
+  planDescription: string
+  servicesProvided?: string | null
+  targetValue?: number | null
+  targetDate?: string | null
+  status?: string | null
+  caseConferenceDate?: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ResidentDetailResponse {
+  resident: Record<string, unknown>
+  safehouseName?: string | null
+  processRecordings: ProcessRecordingItem[]
+  homeVisitations: HomeVisitationItem[]
+  interventions: InterventionPlanItem[]
+}
+
+export interface SupporterListItem {
+  supporterId: number
+  supporterType: string
+  displayName: string
+  organizationName?: string | null
+  firstName?: string | null
+  lastName?: string | null
+  relationshipType?: string | null
+  region?: string | null
+  country?: string | null
+  email?: string | null
+  phone?: string | null
+  status: string
+  createdAt: string
+  firstDonationDate?: string | null
+  acquisitionChannel?: string | null
+  totalGiven: number
+  lastGiftDate?: string | null
+}
+
+export interface SupporterDetailResponse {
+  supporter: SupporterListItem
+  donations: Array<Record<string, unknown>>
+  allocations: Array<Record<string, unknown>>
+}
+
+export interface AdminDashboardResponse {
+  activeResidents: number
+  activeSafehouses: number
+  recentDonations: Array<Record<string, unknown>>
+  safehouseMetrics: Array<Record<string, unknown>>
+  upcomingCaseConferences: Array<Record<string, unknown>>
+}
+
+export interface ReportsSummaryResponse {
+  donationsByMonth: Array<{ month: string; raised: number; donors: number }>
+  residentOutcomeMetrics: Array<Record<string, unknown>>
+  safehouseComparisons: Array<Record<string, unknown>>
+  reintegration: { completed: number; totalTracked: number }
+}
+
+export function getResidents() {
+  return api<StaffResidentListItem[]>('/api/residents')
+}
+
+export function getResident(id: string | number) {
+  return api<ResidentDetailResponse>(`/api/residents/${id}`)
+}
+
+export function createResident(payload: Record<string, unknown>) {
+  return api<StaffResidentListItem>('/api/residents', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function getSupporters() {
+  return api<SupporterListItem[]>('/api/supporters')
+}
+
+export function getSupporter(id: string | number) {
+  return api<SupporterDetailResponse>(`/api/supporters/${id}`)
+}
+
+export function createSupporter(payload: Record<string, unknown>) {
+  return api<SupporterListItem>('/api/supporters', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function getProcessRecordings(residentId?: string | number) {
+  const suffix = residentId ? `?residentId=${residentId}` : ''
+  return api<ProcessRecordingItem[]>(`/api/processrecordings${suffix}`)
+}
+
+export function createProcessRecording(payload: Record<string, unknown>) {
+  return api<ProcessRecordingItem>('/api/processrecordings', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function getHomeVisitations(residentId?: string | number) {
+  const suffix = residentId ? `?residentId=${residentId}` : ''
+  return api<HomeVisitationItem[]>(`/api/homevisitations${suffix}`)
+}
+
+export function createHomeVisitation(payload: Record<string, unknown>) {
+  return api<HomeVisitationItem>('/api/homevisitations', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function getAdminDashboard() {
+  return api<AdminDashboardResponse>('/api/admin/dashboard')
+}
+
+export function getReportsSummary() {
+  return api<ReportsSummaryResponse>('/api/reports/summary')
+}
