@@ -1,13 +1,40 @@
 import PublicNav from '@/components/layout/PublicNav'
 import PublicFooter from '@/components/layout/PublicFooter'
 import { TrendingUp, Home, BookOpen, Briefcase, Heart, ArrowRight } from 'lucide-react'
-import { formatUsdFromPhp } from '@/lib/formatters'
+import { formatUsdFromPhp, formatPercent, formatNumber } from '@/lib/formatters'
+import {
+  SURVIVORS_SERVED,
+  PROGRAM_COMPLETION_PCT,
+  STABLE_HOUSING_VISIT_PCT,
+  COMMUNITY_INVESTMENT_PHP,
+  EDUCATION_PROGRESS_PCT,
+  EDUCATION_ATTENDANCE_ENGAGEMENT_PCT,
+  WELLBEING_HEALTH_PCT,
+  FUND_ALLOCATION_BY_PROGRAM,
+  DIRECT_PROGRAM_SHARE_PCT,
+} from '@/data/impactReportStats'
 
 const stats = [
-  { value: '2,400+', label: 'Survivors Served', sub: 'since 2010' },
-  { value: '94%', label: 'Program Completion', sub: 'of enrolled residents' },
-  { value: '78%', label: 'Stable Housing', sub: 'at 12-month follow-up' },
-  { value: formatUsdFromPhp(18_000_000), label: 'Community Investment', sub: 'in livelihood programs' },
+  {
+    value: formatNumber(SURVIVORS_SERVED),
+    label: 'Survivors Served',
+    sub: 'resident records (female youth)',
+  },
+  {
+    value: formatPercent(PROGRAM_COMPLETION_PCT, 1),
+    label: 'Program Completion',
+    sub: 'latest education record marked Completed',
+  },
+  {
+    value: formatPercent(STABLE_HOUSING_VISIT_PCT, 1),
+    label: 'Stable Housing',
+    sub: 'post-placement visits with Favorable outcome',
+  },
+  {
+    value: formatUsdFromPhp(COMMUNITY_INVESTMENT_PHP),
+    label: 'Community Investment',
+    sub: 'donations allocated to programs (PHP basis)',
+  },
 ]
 
 const outcomes = [
@@ -15,37 +42,37 @@ const outcomes = [
     icon: Home,
     title: 'Safe & Stable Housing',
     description:
-      'Of survivors who completed our residential program and were followed up at 12 months, 78% remained in stable, safe housing — either independently, with family, or in supported community settings.',
-    progress: 78,
+      'Post-placement monitoring visits are tracked in our case system. Among those visits, the share with a Favorable housing stability outcome reflects movement toward safe, appropriate placement.',
+    progress: Math.round(STABLE_HOUSING_VISIT_PCT),
     color: 'brand-teal',
-    detail: '78% stable housing rate',
+    detail: `${formatPercent(STABLE_HOUSING_VISIT_PCT, 1)} Favorable (post-placement visits)`,
   },
   {
     icon: BookOpen,
     title: 'Education Re-enrollment',
     description:
-      'Among residents aged 12–21, 67% returned to formal education or entered vocational training within 6 months of discharge — a critical predictor of long-term independence.',
-    progress: 67,
+      'Using the latest education record per resident, we measure progress toward course completion. Strong progress scores indicate residents are on track in formal or vocational pathways.',
+    progress: Math.round(EDUCATION_PROGRESS_PCT),
     color: 'brand-bronze',
-    detail: '67% returned to learning',
+    detail: `${formatPercent(EDUCATION_PROGRESS_PCT, 1)} at ≥67% learning progress`,
   },
   {
     icon: Briefcase,
-    title: 'Economic Independence',
+    title: 'School engagement',
     description:
-      'Of livelihood program graduates, 71% reported sustainable income from employment or self-employment at the 12-month mark, compared to 8% at intake.',
-    progress: 71,
+      'Consistent attendance is a leading indicator of persistence in education and training. We report the share of residents whose latest record shows attendance at or above a 71% threshold.',
+    progress: Math.round(EDUCATION_ATTENDANCE_ENGAGEMENT_PCT),
     color: 'brand-teal',
-    detail: '71% achieved stable income',
+    detail: `${formatPercent(EDUCATION_ATTENDANCE_ENGAGEMENT_PCT, 1)} at ≥71% attendance`,
   },
   {
     icon: TrendingUp,
     title: 'Psychological Wellbeing',
     description:
-      'Using the WHO-5 Wellbeing Index, residents show an average 47-point improvement from intake to discharge — moving from "at-risk" to "good wellbeing" range.',
-    progress: 83,
+      'Clinical check-ins record general health scores on a 1–5 scale. Residents scoring 3.0 or above on the latest record are counted as meeting a stable-or-better wellbeing band.',
+    progress: Math.round(WELLBEING_HEALTH_PCT),
     color: 'brand-bronze',
-    detail: '83% scored "good wellbeing" at discharge',
+    detail: `${formatPercent(WELLBEING_HEALTH_PCT, 1)} general health score ≥3.0`,
   },
 ]
 
@@ -76,13 +103,11 @@ const stories = [
   },
 ]
 
-const allocationItems = [
-  { label: 'Direct Resident Services', pct: 62, color: 'bg-brand-teal' },
-  { label: 'Counseling & Mental Health', pct: 16, color: 'bg-brand-bronze' },
-  { label: 'Legal Advocacy', pct: 9, color: 'bg-amber-400' },
-  { label: 'Administration & Operations', pct: 8, color: 'bg-slate-400' },
-  { label: 'Fundraising & Communications', pct: 5, color: 'bg-slate-300' },
-]
+const allocationItems = FUND_ALLOCATION_BY_PROGRAM.map(({ label, pct, color }) => ({
+  label,
+  pct: Math.round(pct * 10) / 10,
+  color,
+}))
 
 export default function ImpactPage() {
   return (
@@ -116,9 +141,11 @@ export default function ImpactPage() {
             </div>
             {/* Big stat */}
             <div className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center">
-              <p className="font-serif text-6xl md:text-7xl text-brand-bronze mb-2">2,400+</p>
+              <p className="font-serif text-6xl md:text-7xl text-brand-bronze mb-2">
+                {formatNumber(SURVIVORS_SERVED)}
+              </p>
               <p className="text-white text-lg font-semibold mb-1">Survivors Served</p>
-              <p className="text-brand-muted-light text-sm">Across three facilities since 2010</p>
+              <p className="text-brand-muted-light text-sm">Female residents in current program data</p>
             </div>
           </div>
         </div>
@@ -254,9 +281,11 @@ export default function ImpactPage() {
                 Where your money goes
               </h2>
               <p className="text-brand-muted leading-relaxed text-sm mb-8">
-                87% of all funds go directly to program delivery. We maintain low overhead
-                through efficient operations, volunteer contributions, and in-kind partnerships
-                with local businesses.
+                {formatPercent(DIRECT_PROGRAM_SHARE_PCT, 1)} of allocated funds flow to
+                resident-facing lines (education, wellbeing, transport, maintenance, and outreach),
+                excluding the operations allocation bucket. Totals reflect{' '}
+                {formatUsdFromPhp(COMMUNITY_INVESTMENT_PHP)} in routed support (PHP basis, shown as USD
+                equivalent where applicable).
               </p>
               <div className="space-y-4">
                 {allocationItems.map(({ label, pct, color }) => (

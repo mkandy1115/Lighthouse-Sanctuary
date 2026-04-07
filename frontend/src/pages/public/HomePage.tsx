@@ -16,7 +16,17 @@ import SharedHeroSection from '@/components/shared/HeroSection'
 import ProgramCard from '@/components/shared/ProgramCard'
 import OutcomeMetric from '@/components/shared/OutcomeMetric'
 import DonorImpactCard from '@/components/shared/DonorImpactCard'
-import { formatUsdFromPhp } from '@/lib/formatters'
+import { formatPercent, formatUsdFromPhp } from '@/lib/formatters'
+
+/** Aggregate stats from `lighthouse_csv_v7` (same definitions as notebook analysis). */
+const IMPACT_STATS = {
+  /** Count of resident rows with sex = F */
+  girlsSupported: 60,
+  /** Share of residents with reintegration_status = Completed */
+  reintegrationSuccessPct: (19 / 60) * 100,
+  /** Sum of donation_allocations.amount_allocated (PHP) */
+  totalImpactPhp: 282_436.39,
+} as const
 
 // ─── Decorative SVG pattern ───────────────────────────────────────────────────
 function GeometricPattern() {
@@ -269,9 +279,21 @@ function ImpactSection() {
         {/* Big stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-14">
           {[
-            { stat: '327', label: 'Girls Supported', sub: 'since 2019' },
-            { stat: '93%', label: 'Reintegration Success', sub: 'at 12-month follow-up' },
-            { stat: formatUsdFromPhp(42_000_000), label: 'Total Impact', sub: 'in services delivered' },
+            {
+              stat: String(IMPACT_STATS.girlsSupported),
+              label: 'Girls Supported',
+              sub: 'female residents in program records',
+            },
+            {
+              stat: formatPercent(IMPACT_STATS.reintegrationSuccessPct, 1),
+              label: 'Reintegration Success',
+              sub: 'cases with Completed reintegration status',
+            },
+            {
+              stat: formatUsdFromPhp(IMPACT_STATS.totalImpactPhp),
+              label: 'Total Impact',
+              sub: 'in services delivered (allocated from donations)',
+            },
           ].map(({ stat, label, sub }) => (
             <div
               key={label}
