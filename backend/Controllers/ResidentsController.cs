@@ -1,6 +1,7 @@
 using Lighthouse.Sanctuary.Api.Data;
 using Lighthouse.Sanctuary.Api.Models;
 using Lighthouse.Sanctuary.Api.Models.Residents;
+using Lighthouse.Sanctuary.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -141,6 +142,23 @@ public class ResidentsController(LighthouseContext context) : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateResident([FromBody] CreateResidentRequest request)
     {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        request.CaseControlNo = InputSanitizer.NormalizePlainText(request.CaseControlNo, 32);
+        request.InternalCode = InputSanitizer.NormalizePlainText(request.InternalCode, 32);
+        request.CaseStatus = InputSanitizer.NormalizePlainText(request.CaseStatus, 24);
+        request.Sex = InputSanitizer.NormalizePlainText(request.Sex, 8);
+        request.CaseCategory = InputSanitizer.NormalizePlainText(request.CaseCategory, 64);
+        request.AssignedSocialWorker = InputSanitizer.NormalizePlainText(request.AssignedSocialWorker, 120);
+        request.ReferralSource = InputSanitizer.NormalizePlainText(request.ReferralSource, 80);
+        request.CurrentRiskLevel = InputSanitizer.NormalizePlainText(request.CurrentRiskLevel, 24);
+        request.InitialCaseAssessment = InputSanitizer.NormalizePlainText(request.InitialCaseAssessment, 500, allowNewLines: true);
+        request.PwdType = InputSanitizer.NormalizePlainText(request.PwdType, 80);
+        request.SpecialNeedsDiagnosis = InputSanitizer.NormalizePlainText(request.SpecialNeedsDiagnosis, 200);
+
         var resident = new Resident
         {
             CaseControlNo = request.CaseControlNo.Trim(),
@@ -180,11 +198,32 @@ public class ResidentsController(LighthouseContext context) : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<IActionResult> UpdateResident(int id, [FromBody] UpdateResidentRequest request)
     {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
         var resident = await context.Residents.FirstOrDefaultAsync(record => record.ResidentId == id);
         if (resident is null)
         {
             return NotFound();
         }
+
+        request.CaseControlNo = InputSanitizer.NormalizePlainText(request.CaseControlNo, 32);
+        request.InternalCode = InputSanitizer.NormalizePlainText(request.InternalCode, 32);
+        request.CaseStatus = InputSanitizer.NormalizePlainText(request.CaseStatus, 24);
+        request.Sex = InputSanitizer.NormalizePlainText(request.Sex, 8);
+        request.CaseCategory = InputSanitizer.NormalizePlainText(request.CaseCategory, 64);
+        request.AssignedSocialWorker = InputSanitizer.NormalizePlainText(request.AssignedSocialWorker, 120);
+        request.ReferralSource = InputSanitizer.NormalizePlainText(request.ReferralSource, 80);
+        request.CurrentRiskLevel = InputSanitizer.NormalizePlainText(request.CurrentRiskLevel, 24);
+        request.InitialRiskLevel = InputSanitizer.NormalizePlainText(request.InitialRiskLevel, 24);
+        request.InitialCaseAssessment = InputSanitizer.NormalizePlainText(request.InitialCaseAssessment, 500, allowNewLines: true);
+        request.ReintegrationStatus = InputSanitizer.NormalizePlainText(request.ReintegrationStatus, 24);
+        request.ReintegrationType = InputSanitizer.NormalizePlainText(request.ReintegrationType, 64);
+        request.NotesRestricted = InputSanitizer.NormalizePlainText(request.NotesRestricted, 1000, allowNewLines: true);
+        request.PwdType = InputSanitizer.NormalizePlainText(request.PwdType, 80);
+        request.SpecialNeedsDiagnosis = InputSanitizer.NormalizePlainText(request.SpecialNeedsDiagnosis, 200);
 
         resident.CaseControlNo = request.CaseControlNo.Trim();
         resident.InternalCode = request.InternalCode.Trim();

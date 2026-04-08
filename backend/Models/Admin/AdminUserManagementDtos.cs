@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Lighthouse.Sanctuary.Api.Models.Admin;
 
 public class AdminUserListItemDto
@@ -13,5 +15,7 @@ public class AdminUserListItemDto
 
 public class UpdateUserRoleRequest
 {
+    [Required]
+    [StringLength(16)]
     public string Role { get; set; } = string.Empty;
 }

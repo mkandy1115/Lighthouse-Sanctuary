@@ -6,6 +6,7 @@ import { RoleContext } from '@/App'
 import { registerDonor, saveAuthSession } from '@/lib/auth'
 import { createPublicDonation } from '@/lib/donations'
 import { convertUsdToPhp, formatCurrency } from '@/lib/formatters'
+import { inRange, looksUnsafe, sanitizeText, validateEmail, validateStrongPassword } from '@/lib/validation'
 import { Heart, Check, ArrowRight, RefreshCw, UserPlus, Ghost, LoaderCircle } from 'lucide-react'
 
 const presetAmounts = [25, 50, 100, 250, 500]
@@ -54,21 +55,41 @@ export default function DonatePage() {
       setError('Enter a donation amount greater than zero.')
       return
     }
+    if (!inRange(effectiveAmountUsd, 1, 100000)) {
+      setError('Donation amount must be between $1 and $100,000.')
+      return
+    }
 
     try {
       setIsSubmitting(true)
 
       if (mode === 'register') {
-        if (!firstName.trim() || !lastName.trim() || !email.trim() || !username.trim() || !password.trim()) {
+        const safeFirstName = sanitizeText(firstName, 80)
+        const safeLastName = sanitizeText(lastName, 80)
+        const safeEmail = sanitizeText(email, 254).toLowerCase()
+        const safeUsername = sanitizeText(username, 64)
+        if (!safeFirstName || !safeLastName || !safeEmail || !safeUsername || !password.trim()) {
           setError('Complete all donor account fields before continuing.')
+          return
+        }
+        if (!validateEmail(safeEmail)) {
+          setError('Enter a valid email address.')
+          return
+        }
+        if (!validateStrongPassword(password)) {
+          setError('Password must be 14+ chars with uppercase, lowercase, number, and symbol.')
+          return
+        }
+        if ([safeFirstName, safeLastName, safeUsername].some(looksUnsafe)) {
+          setError('One or more fields contains unsafe input.')
           return
         }
 
         const session = await registerDonor({
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-          email: email.trim(),
-          username: username.trim(),
+          firstName: safeFirstName,
+          lastName: safeLastName,
+          email: safeEmail,
+          username: safeUsername,
           password,
           country: 'Ghana',
           acquisitionChannel: 'Website',
@@ -81,9 +102,9 @@ export default function DonatePage() {
           isRecurring: frequency === 'monthly',
           supporterId: session.user.supporterId ?? undefined,
           isAnonymous: false,
-          email: email.trim(),
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
+          email: safeEmail,
+          firstName: safeFirstName,
+          lastName: safeLastName,
         })
 
         setRole('donor')

@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Security.Claims;
 using Lighthouse.Sanctuary.Api.Data;
 using Lighthouse.Sanctuary.Api.Models.Donor;
+using Lighthouse.Sanctuary.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,13 @@ public class DonorController(LighthouseContext context) : ControllerBase
     [HttpPost("donations")]
     public async Task<IActionResult> CreateDonation([FromBody] CreateDonorDonationRequest request)
     {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        request.CampaignName = InputSanitizer.NormalizePlainText(request.CampaignName, 120);
+
         if (request.Amount <= 0)
         {
             return BadRequest(new { message = "Donation amount must be greater than zero." });

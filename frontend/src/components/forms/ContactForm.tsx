@@ -5,10 +5,10 @@ import Textarea from '@/components/ui/Textarea'
 export function ContactForm() {
   return (
     <form className="space-y-4">
-      <Input placeholder="Your name" />
-      <Input placeholder="Email address" type="email" />
-      <Textarea placeholder="How can we help?" />
-      <Button type="button">Send message</Button>
+      <Input placeholder="Your name" maxLength={100} required />
+      <Input placeholder="Email address" type="email" maxLength={254} required />
+      <Textarea placeholder="How can we help?" maxLength={2000} required />
+      <Button type="submit">Send message</Button>
     </form>
   )
 }

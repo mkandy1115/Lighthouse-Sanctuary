@@ -1,6 +1,7 @@
 using Lighthouse.Sanctuary.Api.Data;
 using Lighthouse.Sanctuary.Api.Models;
 using Lighthouse.Sanctuary.Api.Models.Conferences;
+using Lighthouse.Sanctuary.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -76,6 +77,16 @@ public class ConferencesController(LighthouseContext context) : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateConference([FromBody] CreateConferenceRequest request)
     {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        request.PlanCategory = InputSanitizer.NormalizePlainText(request.PlanCategory, 64);
+        request.PlanDescription = InputSanitizer.NormalizePlainText(request.PlanDescription, 1000, allowNewLines: true);
+        request.ServicesProvided = InputSanitizer.NormalizePlainText(request.ServicesProvided, 200);
+        request.Status = InputSanitizer.NormalizePlainText(request.Status, 24);
+
         var residentExists = await context.Residents.AnyAsync(record => record.ResidentId == request.ResidentId);
         if (!residentExists)
         {
@@ -110,11 +121,21 @@ public class ConferencesController(LighthouseContext context) : ControllerBase
     [HttpPut("{planId:int}")]
     public async Task<IActionResult> UpdateConference(int planId, [FromBody] UpdateConferenceRequest request)
     {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
         var plan = await context.InterventionPlans.FirstOrDefaultAsync(record => record.PlanId == planId);
         if (plan is null)
         {
             return NotFound();
         }
+
+        request.PlanCategory = InputSanitizer.NormalizePlainText(request.PlanCategory, 64);
+        request.PlanDescription = InputSanitizer.NormalizePlainText(request.PlanDescription, 1000, allowNewLines: true);
+        request.ServicesProvided = InputSanitizer.NormalizePlainText(request.ServicesProvided, 200);
+        request.Status = InputSanitizer.NormalizePlainText(request.Status, 24);
 
         if (!string.IsNullOrWhiteSpace(request.PlanCategory))
         {

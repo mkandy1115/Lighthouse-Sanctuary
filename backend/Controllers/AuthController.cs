@@ -55,7 +55,12 @@ public class AuthController(
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var username = request.Username.Trim();
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        var username = InputSanitizer.NormalizePlainText(request.Username, 64);
         if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(request.Password))
         {
             return BadRequest(new { message = "Username and password are required." });
@@ -95,10 +100,19 @@ public class AuthController(
     [HttpPost("register-donor")]
     public async Task<IActionResult> RegisterDonor([FromBody] RegisterDonorRequest request)
     {
-        var firstName = request.FirstName.Trim();
-        var lastName = request.LastName.Trim();
-        var email = request.Email.Trim().ToLowerInvariant();
-        var username = request.Username.Trim();
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        var firstName = InputSanitizer.NormalizePlainText(request.FirstName, 80);
+        var lastName = InputSanitizer.NormalizePlainText(request.LastName, 80);
+        var email = InputSanitizer.NormalizeEmail(request.Email);
+        var username = InputSanitizer.NormalizePlainText(request.Username, 64);
+        var phone = InputSanitizer.NormalizePlainText(request.Phone, 40);
+        var country = InputSanitizer.NormalizePlainText(request.Country, 80);
+        var region = InputSanitizer.NormalizePlainText(request.Region, 80);
+        var acquisitionChannel = InputSanitizer.NormalizePlainText(request.AcquisitionChannel, 64);
 
         if (string.IsNullOrWhiteSpace(firstName)
             || string.IsNullOrWhiteSpace(lastName)
@@ -107,6 +121,17 @@ public class AuthController(
             || string.IsNullOrWhiteSpace(request.Password))
         {
             return BadRequest(new { message = "First name, last name, email, username, and password are required." });
+        }
+
+        if (InputSanitizer.LooksUnsafe(firstName)
+            || InputSanitizer.LooksUnsafe(lastName)
+            || InputSanitizer.LooksUnsafe(username)
+            || InputSanitizer.LooksUnsafe(phone)
+            || InputSanitizer.LooksUnsafe(country)
+            || InputSanitizer.LooksUnsafe(region)
+            || InputSanitizer.LooksUnsafe(acquisitionChannel))
+        {
+            return BadRequest(new { message = "One or more fields contains unsafe input." });
         }
 
         var passwordError = ValidatePasswordPolicy(request.Password, username);
@@ -136,15 +161,15 @@ public class AuthController(
             FirstName = firstName,
             LastName = lastName,
             Email = email,
-            Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim(),
-            Country = string.IsNullOrWhiteSpace(request.Country) ? "Ghana" : request.Country.Trim(),
-            Region = string.IsNullOrWhiteSpace(request.Region) ? null : request.Region.Trim(),
+            Phone = string.IsNullOrWhiteSpace(phone) ? null : phone,
+            Country = string.IsNullOrWhiteSpace(country) ? "Ghana" : country,
+            Region = string.IsNullOrWhiteSpace(region) ? null : region,
             RelationshipType = "International",
             Status = "Active",
             CreatedAt = DateTime.UtcNow,
-            AcquisitionChannel = string.IsNullOrWhiteSpace(request.AcquisitionChannel)
+            AcquisitionChannel = string.IsNullOrWhiteSpace(acquisitionChannel)
                 ? "Website"
-                : request.AcquisitionChannel.Trim()
+                : acquisitionChannel
         };
 
         context.Supporters.Add(supporter);
@@ -185,10 +210,19 @@ public class AuthController(
     [HttpPost("register-existing-donor")]
     public async Task<IActionResult> RegisterExistingDonor([FromBody] RegisterExistingDonorRequest request)
     {
-        var username = request.Username.Trim();
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        var username = InputSanitizer.NormalizePlainText(request.Username, 64);
         if (request.SupporterId <= 0 || string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(request.Password))
         {
             return BadRequest(new { message = "Supporter ID, username, and password are required." });
+        }
+        if (InputSanitizer.LooksUnsafe(username))
+        {
+            return BadRequest(new { message = "Username contains unsafe input." });
         }
 
         var passwordError = ValidatePasswordPolicy(request.Password, username);
@@ -265,6 +299,11 @@ public class AuthController(
     [HttpPost("change-password")]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
     {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
         if (string.IsNullOrWhiteSpace(request.CurrentPassword) || string.IsNullOrWhiteSpace(request.NewPassword))
         {
             return BadRequest(new { message = "Current password and new password are required." });

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Modal from '@/components/ui/Modal'
 import { createHomeVisitation, getHomeVisitations, getResidents, type HomeVisitationItem, type StaffResidentListItem } from '@/lib/staff'
 import { formatDate } from '@/lib/formatters'
+import { looksUnsafe, sanitizeText } from '@/lib/validation'
 
 export default function HomeVisitsPage() {
   const [visits, setVisits] = useState<HomeVisitationItem[]>([])
@@ -46,19 +47,28 @@ export default function HomeVisitsPage() {
 
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    setError('')
+    if (!form.residentId || !form.visitDate) {
+      setError('Resident and visit date are required.')
+      return
+    }
+    if ([form.socialWorker, form.locationVisited, form.observations, form.followUpNotes].some(looksUnsafe)) {
+      setError('Submitted text contains unsafe input.')
+      return
+    }
     const created = await createHomeVisitation({
       residentId: Number(form.residentId),
       visitDate: form.visitDate,
-      socialWorker: form.socialWorker,
-      visitType: form.visitType,
-      locationVisited: form.locationVisited,
-      purpose: form.purpose,
-      observations: form.observations,
-      familyCooperationLevel: form.familyCooperationLevel,
+      socialWorker: sanitizeText(form.socialWorker, 120),
+      visitType: sanitizeText(form.visitType, 64),
+      locationVisited: sanitizeText(form.locationVisited, 240),
+      purpose: sanitizeText(form.purpose, 500),
+      observations: sanitizeText(form.observations, 4000, true),
+      familyCooperationLevel: sanitizeText(form.familyCooperationLevel, 40),
       safetyConcernsNoted: false,
       followUpNeeded: Boolean(form.followUpNotes),
-      followUpNotes: form.followUpNotes,
-      visitOutcome: form.visitOutcome,
+      followUpNotes: sanitizeText(form.followUpNotes, 2000, true),
+      visitOutcome: sanitizeText(form.visitOutcome, 40),
     })
     setVisits((current) => [created, ...current])
     setIsModalOpen(false)

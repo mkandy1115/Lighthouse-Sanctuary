@@ -2,6 +2,7 @@ import { useContext, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { RoleContext } from '@/App'
 import { login, saveAuthSession } from '@/lib/auth'
+import { looksUnsafe, sanitizeText } from '@/lib/validation'
 import { LoaderCircle } from 'lucide-react'
 
 export default function LoginPage() {
@@ -16,15 +17,20 @@ export default function LoginPage() {
     e.preventDefault()
     setError('')
 
-    const normalizedUsername = username.trim()
+    const normalizedUsername = sanitizeText(username, 64)
+    const normalizedPassword = password.trim()
     if (!normalizedUsername || !password.trim()) {
       setError('Enter both username and password.')
+      return
+    }
+    if (looksUnsafe(normalizedUsername)) {
+      setError('Username contains invalid characters.')
       return
     }
 
     try {
       setIsSubmitting(true)
-      const session = await login(normalizedUsername, password)
+      const session = await login(normalizedUsername, normalizedPassword)
       saveAuthSession(session)
 
       const role = session.user.role === 'Admin' ? 'admin' : 'donor'

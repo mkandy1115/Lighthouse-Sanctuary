@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import Modal from '@/components/ui/Modal'
 import { createSupporter, getSupporters, type SupporterListItem } from '@/lib/staff'
 import { formatDate, formatUsdFromPhp } from '@/lib/formatters'
+import { looksUnsafe, sanitizeText, validateEmail } from '@/lib/validation'
 
 export default function StaffDonorListPage() {
   const [supporters, setSupporters] = useState<SupporterListItem[]>([])
@@ -46,8 +47,28 @@ export default function StaffDonorListPage() {
 
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    setError('')
 
-    const created = await createSupporter(form)
+    const payload = {
+      ...form,
+      displayName: sanitizeText(form.displayName, 160),
+      email: sanitizeText(form.email, 254).toLowerCase(),
+      phone: sanitizeText(form.phone, 40),
+    }
+    if (!payload.displayName) {
+      setError('Display name is required.')
+      return
+    }
+    if (payload.email && !validateEmail(payload.email)) {
+      setError('Enter a valid email address.')
+      return
+    }
+    if (looksUnsafe(payload.displayName)) {
+      setError('Display name contains unsafe input.')
+      return
+    }
+
+    const created = await createSupporter(payload)
     setSupporters((current) => [created, ...current])
     setIsModalOpen(false)
     setForm({

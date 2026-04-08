@@ -1,4 +1,41 @@
+import { useState } from 'react'
+import { looksUnsafe, sanitizeText, validateEmail } from '@/lib/validation'
+
 export default function ContactPage() {
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError('')
+    setSuccess('')
+
+    const safeName = sanitizeText(name, 100)
+    const safeEmail = sanitizeText(email, 254).toLowerCase()
+    const safeMessage = sanitizeText(message, 2000, true)
+
+    if (!safeName || !safeEmail || !safeMessage) {
+      setError('Please complete all fields.')
+      return
+    }
+    if (!validateEmail(safeEmail)) {
+      setError('Please provide a valid email address.')
+      return
+    }
+    if (looksUnsafe(safeName) || looksUnsafe(safeMessage)) {
+      setError('Message contains invalid characters.')
+      return
+    }
+
+    setName(safeName)
+    setEmail(safeEmail)
+    setMessage(safeMessage)
+    setSuccess('Thanks. Your message is ready to send.')
+  }
+
   return (
     <main className="min-h-screen bg-brand-cream">
       <div className="max-w-4xl mx-auto px-6 py-24">
@@ -30,13 +67,15 @@ export default function ContactPage() {
           </div>
           <div className="bg-white rounded-2xl p-6 shadow-card border border-brand-border">
             <h2 className="font-serif text-xl text-brand-charcoal mb-4">Send a Message</h2>
-            <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-4" onSubmit={handleSubmit}>
               <div>
                 <label className="block text-sm font-medium text-brand-charcoal mb-1">
                   Your Name
                 </label>
                 <input
                   type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   className="w-full border border-brand-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-bronze/30 focus:border-brand-bronze bg-brand-cream"
                   placeholder="Maria Santos"
                 />
@@ -47,6 +86,8 @@ export default function ContactPage() {
                 </label>
                 <input
                   type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full border border-brand-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-bronze/30 focus:border-brand-bronze bg-brand-cream"
                   placeholder="you@example.com"
                 />
@@ -57,10 +98,14 @@ export default function ContactPage() {
                 </label>
                 <textarea
                   rows={4}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
                   className="w-full border border-brand-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-bronze/30 focus:border-brand-bronze bg-brand-cream resize-none"
                   placeholder="How can we help?"
                 />
               </div>
+              {error && <p className="text-sm text-rose-700">{error}</p>}
+              {success && <p className="text-sm text-brand-teal">{success}</p>}
               <button
                 type="submit"
                 className="w-full bg-brand-bronze text-white font-semibold py-2.5 rounded-lg hover:bg-brand-bronze-light transition-colors text-sm"

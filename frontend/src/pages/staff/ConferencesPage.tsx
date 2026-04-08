@@ -10,6 +10,7 @@ import {
   type StaffResidentListItem,
 } from '@/lib/staff'
 import { Calendar } from 'lucide-react'
+import { looksUnsafe, sanitizeText } from '@/lib/validation'
 
 export default function ConferencesPage() {
   const [conferences, setConferences] = useState<ConferenceItem[]>([])
@@ -72,12 +73,21 @@ export default function ConferencesPage() {
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     try {
+      setError('')
+      if (!form.residentId || !form.caseConferenceDate || !form.planDescription.trim()) {
+        setError('Resident, conference date, and plan description are required.')
+        return
+      }
+      if ([form.planCategory, form.planDescription, form.servicesProvided].some(looksUnsafe)) {
+        setError('Submitted text contains unsafe input.')
+        return
+      }
       await createConference({
         residentId: Number(form.residentId),
-        planCategory: form.planCategory,
-        planDescription: form.planDescription,
-        servicesProvided: form.servicesProvided || null,
-        status: form.status,
+        planCategory: sanitizeText(form.planCategory, 64),
+        planDescription: sanitizeText(form.planDescription, 1000, true),
+        servicesProvided: sanitizeText(form.servicesProvided, 200, true) || null,
+        status: sanitizeText(form.status, 24),
         caseConferenceDate: form.caseConferenceDate,
       })
       setIsModalOpen(false)

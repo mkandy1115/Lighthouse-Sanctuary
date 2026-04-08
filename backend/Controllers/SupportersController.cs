@@ -1,6 +1,7 @@
 using Lighthouse.Sanctuary.Api.Data;
 using Lighthouse.Sanctuary.Api.Models;
 using Lighthouse.Sanctuary.Api.Models.Supporters;
+using Lighthouse.Sanctuary.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -138,6 +139,32 @@ public class SupportersController(LighthouseContext context) : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateSupporter([FromBody] CreateSupporterRequest request)
     {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        request.SupporterType = InputSanitizer.NormalizePlainText(request.SupporterType, 40);
+        request.DisplayName = InputSanitizer.NormalizePlainText(request.DisplayName, 160);
+        request.OrganizationName = InputSanitizer.NormalizePlainText(request.OrganizationName, 160);
+        request.FirstName = InputSanitizer.NormalizePlainText(request.FirstName, 80);
+        request.LastName = InputSanitizer.NormalizePlainText(request.LastName, 80);
+        request.RelationshipType = InputSanitizer.NormalizePlainText(request.RelationshipType, 40);
+        request.Region = InputSanitizer.NormalizePlainText(request.Region, 80);
+        request.Country = InputSanitizer.NormalizePlainText(request.Country, 80);
+        request.Email = InputSanitizer.NormalizeEmail(request.Email);
+        request.Phone = InputSanitizer.NormalizePlainText(request.Phone, 40);
+        request.Status = InputSanitizer.NormalizePlainText(request.Status, 20);
+        request.AcquisitionChannel = InputSanitizer.NormalizePlainText(request.AcquisitionChannel, 64);
+
+        if (InputSanitizer.LooksUnsafe(request.DisplayName)
+            || InputSanitizer.LooksUnsafe(request.OrganizationName)
+            || InputSanitizer.LooksUnsafe(request.FirstName)
+            || InputSanitizer.LooksUnsafe(request.LastName))
+        {
+            return BadRequest(new { message = "Supporter profile contains unsafe input." });
+        }
+
         var supporter = new Supporter
         {
             SupporterType = request.SupporterType,
@@ -163,17 +190,34 @@ public class SupportersController(LighthouseContext context) : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<IActionResult> UpdateSupporter(int id, [FromBody] UpdateSupporterRequest request)
     {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
         var supporter = await context.Supporters.FirstOrDefaultAsync(record => record.SupporterId == id);
         if (supporter is null)
         {
             return NotFound();
         }
 
+        request.DisplayName = InputSanitizer.NormalizePlainText(request.DisplayName, 160);
+        request.Email = InputSanitizer.NormalizeEmail(request.Email);
+        request.Phone = InputSanitizer.NormalizePlainText(request.Phone, 40);
+        request.Status = InputSanitizer.NormalizePlainText(request.Status, 20);
+        request.SupporterType = InputSanitizer.NormalizePlainText(request.SupporterType, 40);
+        request.RelationshipType = InputSanitizer.NormalizePlainText(request.RelationshipType, 40);
+
+        if (InputSanitizer.LooksUnsafe(request.DisplayName))
+        {
+            return BadRequest(new { message = "Display name contains unsafe input." });
+        }
+
         supporter.DisplayName = request.DisplayName;
         supporter.Email = request.Email;
         supporter.Phone = request.Phone;
         supporter.Status = request.Status;
-        supporter.SupporterType = request.SupporterType ?? supporter.SupporterType;
+        supporter.SupporterType = string.IsNullOrWhiteSpace(request.SupporterType) ? supporter.SupporterType : request.SupporterType;
         supporter.RelationshipType = request.RelationshipType;
 
         await context.SaveChangesAsync();

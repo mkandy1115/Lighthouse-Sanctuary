@@ -1,6 +1,7 @@
 using Lighthouse.Sanctuary.Api.Data;
 using Lighthouse.Sanctuary.Api.Models;
 using Lighthouse.Sanctuary.Api.Models.HomeVisitations;
+using Lighthouse.Sanctuary.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -54,6 +55,21 @@ public class HomeVisitationsController(LighthouseContext context) : ControllerBa
     [HttpPost]
     public async Task<IActionResult> CreateHomeVisitation([FromBody] CreateHomeVisitationRequest request)
     {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        request.SocialWorker = InputSanitizer.NormalizePlainText(request.SocialWorker, 120);
+        request.VisitType = InputSanitizer.NormalizePlainText(request.VisitType, 64);
+        request.LocationVisited = InputSanitizer.NormalizePlainText(request.LocationVisited, 240);
+        request.FamilyMembersPresent = InputSanitizer.NormalizePlainText(request.FamilyMembersPresent, 240);
+        request.Purpose = InputSanitizer.NormalizePlainText(request.Purpose, 500);
+        request.Observations = InputSanitizer.NormalizePlainText(request.Observations, 4000, allowNewLines: true);
+        request.FamilyCooperationLevel = InputSanitizer.NormalizePlainText(request.FamilyCooperationLevel, 40);
+        request.FollowUpNotes = InputSanitizer.NormalizePlainText(request.FollowUpNotes, 2000, allowNewLines: true);
+        request.VisitOutcome = InputSanitizer.NormalizePlainText(request.VisitOutcome, 40);
+
         var residentExists = await context.Residents.AnyAsync(record => record.ResidentId == request.ResidentId);
         if (!residentExists)
         {

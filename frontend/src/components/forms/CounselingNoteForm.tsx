@@ -4,8 +4,8 @@ import Textarea from '@/components/ui/Textarea'
 export function CounselingNoteForm() {
   return (
     <form className="space-y-4">
-      <Textarea placeholder="Session themes, progress indicators, and next steps" />
-      <Button type="button">Save Note</Button>
+      <Textarea placeholder="Session themes, progress indicators, and next steps" maxLength={4000} required />
+      <Button type="submit">Save Note</Button>
     </form>
   )
 }

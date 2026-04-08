@@ -5,13 +5,13 @@ import Select from '@/components/ui/Select'
 export function HomeVisitForm() {
   return (
     <form className="space-y-4">
-      <Input placeholder="Visit date" type="date" />
+      <Input placeholder="Visit date" type="date" required />
       <Select defaultValue="safe">
         <option value="safe">Safe</option>
         <option value="follow-up">Needs follow-up</option>
         <option value="referred">Referred</option>
       </Select>
-      <Button type="button">Log Visit</Button>
+      <Button type="submit">Log Visit</Button>
     </form>
   )
 }

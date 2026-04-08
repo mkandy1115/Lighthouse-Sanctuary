@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import Modal from '@/components/ui/Modal'
 import { createProcessRecording, getProcessRecordings, getResidents, type ProcessRecordingItem, type StaffResidentListItem } from '@/lib/staff'
 import { formatDate } from '@/lib/formatters'
+import { looksUnsafe, sanitizeText } from '@/lib/validation'
 
 export default function CounselingListPage() {
   const [recordings, setRecordings] = useState<ProcessRecordingItem[]>([])
@@ -51,16 +52,28 @@ export default function CounselingListPage() {
 
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    setError('')
+    const safeNarrative = sanitizeText(form.sessionNarrative, 4000, true)
+    const safeWorker = sanitizeText(form.socialWorker, 120)
+    if (!form.residentId || !form.sessionDate) {
+      setError('Resident and session date are required.')
+      return
+    }
+    if (looksUnsafe(safeNarrative) || looksUnsafe(safeWorker)) {
+      setError('Submitted text contains unsafe input.')
+      return
+    }
+
     const created = await createProcessRecording({
       residentId: Number(form.residentId),
       sessionDate: form.sessionDate,
-      socialWorker: form.socialWorker,
-      sessionType: form.sessionType,
-      emotionalStateObserved: form.emotionalStateObserved,
-      emotionalStateEnd: form.emotionalStateEnd,
-      sessionNarrative: form.sessionNarrative,
-      interventionsApplied: form.interventionsApplied,
-      followUpActions: form.followUpActions,
+      socialWorker: safeWorker,
+      sessionType: sanitizeText(form.sessionType, 24),
+      emotionalStateObserved: sanitizeText(form.emotionalStateObserved, 32),
+      emotionalStateEnd: sanitizeText(form.emotionalStateEnd, 32),
+      sessionNarrative: safeNarrative,
+      interventionsApplied: sanitizeText(form.interventionsApplied, 2000, true),
+      followUpActions: sanitizeText(form.followUpActions, 2000, true),
       progressNoted: true,
       concernsFlagged: false,
       referralMade: false,

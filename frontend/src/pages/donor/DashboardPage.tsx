@@ -14,6 +14,7 @@ import { clearAuthSession, getStoredAuthUser } from '@/lib/auth'
 import Modal from '@/components/ui/Modal'
 import { createDonorDonation, getDonorDashboard, type DonorDashboardData } from '@/lib/donor'
 import { convertPhpToUsd, convertUsdToPhp, formatCurrency, formatDate, formatPercent, formatUsdFromPhp, initials } from '@/lib/formatters'
+import { inRange, looksUnsafe, sanitizeText } from '@/lib/validation'
 
 const navItems = [
   { label: 'My Impact', icon: Sparkles, key: 'impact' },
@@ -542,13 +543,21 @@ export default function DonorPortalPage() {
       setDonationError('Enter a valid donation amount.')
       return
     }
+    if (!inRange(amountUsd, 1, 100000)) {
+      setDonationError('Donation must be between $1 and $100,000.')
+      return
+    }
+    if (looksUnsafe(campaignName)) {
+      setDonationError('Campaign name contains unsafe input.')
+      return
+    }
 
     try {
       setIsSubmittingDonation(true)
       await createDonorDonation({
         amount: Math.round(convertUsdToPhp(amountUsd)),
         isRecurring,
-        campaignName: campaignName.trim() || undefined,
+        campaignName: sanitizeText(campaignName, 120) || undefined,
       })
       await loadDashboardData()
       setIsDonationModalOpen(false)

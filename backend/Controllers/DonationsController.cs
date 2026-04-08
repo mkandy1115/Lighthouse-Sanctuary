@@ -1,6 +1,7 @@
 using Lighthouse.Sanctuary.Api.Data;
 using Lighthouse.Sanctuary.Api.Models;
 using Lighthouse.Sanctuary.Api.Models.Donations;
+using Lighthouse.Sanctuary.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -32,6 +33,11 @@ public class DonationsController(LighthouseContext context) : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> CreatePublicDonation([FromBody] PublicDonationRequest request)
     {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
         if (request.Amount <= 0)
         {
             return BadRequest(new { message = "Donation amount must be greater than zero." });
@@ -51,9 +57,9 @@ public class DonationsController(LighthouseContext context) : ControllerBase
         }
         else
         {
-            var firstName = request.FirstName?.Trim();
-            var lastName = request.LastName?.Trim();
-            var email = request.Email?.Trim().ToLowerInvariant();
+            var firstName = InputSanitizer.NormalizePlainText(request.FirstName, 80);
+            var lastName = InputSanitizer.NormalizePlainText(request.LastName, 80);
+            var email = InputSanitizer.NormalizeEmail(request.Email);
 
             if (!request.IsAnonymous
                 && (string.IsNullOrWhiteSpace(firstName)
@@ -61,6 +67,11 @@ public class DonationsController(LighthouseContext context) : ControllerBase
                     || string.IsNullOrWhiteSpace(email)))
             {
                 return BadRequest(new { message = "Name and email are required unless the donation is anonymous." });
+            }
+            if (InputSanitizer.LooksUnsafe(firstName)
+                || InputSanitizer.LooksUnsafe(lastName))
+            {
+                return BadRequest(new { message = "Donation identity fields contain unsafe input." });
             }
 
             supporter = new Supporter
@@ -121,6 +132,11 @@ public class DonationsController(LighthouseContext context) : ControllerBase
     [HttpPost("staff")]
     public async Task<IActionResult> CreateStaffDonation([FromBody] CreateStaffDonationRequest request)
     {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
         var supporterExists = await context.Supporters.AnyAsync(s => s.SupporterId == request.SupporterId);
         if (!supporterExists)
         {
@@ -133,9 +149,23 @@ public class DonationsController(LighthouseContext context) : ControllerBase
             return BadRequest(new { message = "Safehouse not found." });
         }
 
+        request.ProgramArea = InputSanitizer.NormalizePlainText(request.ProgramArea, 40);
+        request.DonationType = InputSanitizer.NormalizePlainText(request.DonationType, 40);
+        request.ChannelSource = InputSanitizer.NormalizePlainText(request.ChannelSource, 64);
+        request.CurrencyCode = InputSanitizer.NormalizePlainText(request.CurrencyCode, 12);
+        request.ImpactUnit = InputSanitizer.NormalizePlainText(request.ImpactUnit, 32);
+        request.CampaignName = InputSanitizer.NormalizePlainText(request.CampaignName, 120);
+        request.Notes = InputSanitizer.NormalizePlainText(request.Notes, 1000, allowNewLines: true);
+        request.AllocationNotes = InputSanitizer.NormalizePlainText(request.AllocationNotes, 1000, allowNewLines: true);
+
         if (string.IsNullOrWhiteSpace(request.ProgramArea))
         {
             return BadRequest(new { message = "Program area is required." });
+        }
+        if (!InputSanitizer.IsAllowedValue(request.DonationType, "Monetary", "InKind", "Time", "Skills", "SocialMedia")
+            || !InputSanitizer.IsAllowedValue(request.ProgramArea, "Education", "Wellbeing", "Operations", "Transport", "Maintenance", "Outreach"))
+        {
+            return BadRequest(new { message = "Invalid donation type or program area." });
         }
 
         var donation = new Donation

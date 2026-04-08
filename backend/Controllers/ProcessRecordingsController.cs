@@ -1,6 +1,7 @@
 using Lighthouse.Sanctuary.Api.Data;
 using Lighthouse.Sanctuary.Api.Models;
 using Lighthouse.Sanctuary.Api.Models.ProcessRecordings;
+using Lighthouse.Sanctuary.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -92,6 +93,19 @@ public class ProcessRecordingsController(LighthouseContext context) : Controller
     [HttpPost]
     public async Task<IActionResult> CreateProcessRecording([FromBody] CreateProcessRecordingRequest request)
     {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        request.SocialWorker = InputSanitizer.NormalizePlainText(request.SocialWorker, 120);
+        request.SessionType = InputSanitizer.NormalizePlainText(request.SessionType, 24);
+        request.EmotionalStateObserved = InputSanitizer.NormalizePlainText(request.EmotionalStateObserved, 32);
+        request.EmotionalStateEnd = InputSanitizer.NormalizePlainText(request.EmotionalStateEnd, 32);
+        request.SessionNarrative = InputSanitizer.NormalizePlainText(request.SessionNarrative, 4000, allowNewLines: true);
+        request.InterventionsApplied = InputSanitizer.NormalizePlainText(request.InterventionsApplied, 2000, allowNewLines: true);
+        request.FollowUpActions = InputSanitizer.NormalizePlainText(request.FollowUpActions, 2000, allowNewLines: true);
+
         var residentExists = await context.Residents.AnyAsync(record => record.ResidentId == request.ResidentId);
         if (!residentExists)
         {

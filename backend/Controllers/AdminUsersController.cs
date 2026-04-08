@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Lighthouse.Sanctuary.Api.Data;
 using Lighthouse.Sanctuary.Api.Models.Admin;
+using Lighthouse.Sanctuary.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -42,7 +43,12 @@ public class AdminUsersController(LighthouseContext context) : ControllerBase
     [HttpPatch("{id:int}/role")]
     public async Task<IActionResult> UpdateRole(int id, [FromBody] UpdateUserRoleRequest request)
     {
-        var normalizedRole = (request.Role ?? string.Empty).Trim();
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        var normalizedRole = InputSanitizer.NormalizePlainText(request.Role, 16);
         if (!AllowedRoles.Contains(normalizedRole))
         {
             return BadRequest(new { message = "Unsupported role. Allowed roles: Admin, Donor." });

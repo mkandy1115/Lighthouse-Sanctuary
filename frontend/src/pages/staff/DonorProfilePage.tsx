@@ -10,6 +10,7 @@ import {
 } from '@/lib/staff'
 import { formatDate, formatUsdFromPhp } from '@/lib/formatters'
 import { ArrowLeft } from 'lucide-react'
+import { inRange, looksUnsafe, sanitizeText } from '@/lib/validation'
 
 export default function StaffDonorProfilePage() {
   const { id = '' } = useParams<{ id: string }>()
@@ -69,22 +70,33 @@ export default function StaffDonorProfilePage() {
   async function handleCreateDonation(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     try {
+      setError('')
+      const amount = form.amount ? Number(form.amount) : null
+      const allocated = Number(form.amountAllocated || form.amount || 0)
+      if ((amount !== null && !inRange(amount, 0, 10_000_000)) || !inRange(allocated, 0, 10_000_000)) {
+        setError('Donation amounts must be between 0 and 10,000,000.')
+        return
+      }
+      if ([form.campaignName, form.notes, form.allocationNotes].some(looksUnsafe)) {
+        setError('Submitted text contains unsafe input.')
+        return
+      }
       await createStaffDonation({
         supporterId: supporter.supporterId,
-        donationType: form.donationType,
+        donationType: sanitizeText(form.donationType, 40),
         donationDate: form.donationDate,
         isRecurring: form.isRecurring,
-        campaignName: form.campaignName || null,
-        channelSource: form.channelSource || null,
-        currencyCode: form.currencyCode || null,
-        amount: form.amount ? Number(form.amount) : null,
+        campaignName: sanitizeText(form.campaignName, 120) || null,
+        channelSource: sanitizeText(form.channelSource, 64) || null,
+        currencyCode: sanitizeText(form.currencyCode, 12) || null,
+        amount,
         estimatedValue: form.estimatedValue ? Number(form.estimatedValue) : null,
-        impactUnit: form.impactUnit || null,
-        notes: form.notes || null,
+        impactUnit: sanitizeText(form.impactUnit, 32) || null,
+        notes: sanitizeText(form.notes, 1000, true) || null,
         safehouseId: Number(form.safehouseId),
-        programArea: form.programArea,
-        amountAllocated: Number(form.amountAllocated || form.amount || 0),
-        allocationNotes: form.allocationNotes || null,
+        programArea: sanitizeText(form.programArea, 40),
+        amountAllocated: allocated,
+        allocationNotes: sanitizeText(form.allocationNotes, 1000, true) || null,
       })
       setIsModalOpen(false)
       await loadSupporter()
