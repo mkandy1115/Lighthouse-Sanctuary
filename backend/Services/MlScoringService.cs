@@ -69,7 +69,10 @@ public class MlScoringService(
         var configuredRoot = configuration["MlRuntime:PipelineRoot"];
         var pipelineRoot = string.IsNullOrWhiteSpace(configuredRoot)
             ? Path.GetFullPath(Path.Combine(environment.ContentRootPath, ".."))
-            : configuredRoot;
+            : Path.GetFullPath(
+                Path.IsPathRooted(configuredRoot)
+                    ? configuredRoot
+                    : Path.Combine(environment.ContentRootPath, configuredRoot));
 
         var timeoutMs = int.TryParse(configuration["MlRuntime:TimeoutMs"], out var parsedTimeout)
             ? parsedTimeout

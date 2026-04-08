@@ -48,10 +48,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          refresh_response=$(curl -sS -X POST "${PROD_API_BASE_URL}/api/admin/ml-insights/refresh" \
+          refresh_http=$(curl -sS -o /tmp/refresh.json -w "%{http_code}" \
+            -X POST "${PROD_API_BASE_URL}/api/admin/ml-insights/refresh" \
             -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
             -H "Content-Type: application/json")
-          echo "$refresh_response"
+          echo "refresh_http=${refresh_http}"
+          cat /tmp/refresh.json
+          if [ "$refresh_http" -lt 200 ] || [ "$refresh_http" -ge 300 ]; then
+            echo "ML refresh endpoint failed."
+            exit 1
+          fi
 
       - name: Verify ML insights payload
         shell: bash
