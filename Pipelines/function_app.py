@@ -26,11 +26,15 @@ def _subprocess_env() -> dict[str, str]:
 
 
 def _runtime_output_dir() -> Path:
-    """Azure wwwroot is read-only; write transient JSON under the OS temp directory."""
-    root = os.environ.get("TMPDIR") or os.environ.get("TEMP") or tempfile.gettempdir()
-    d = Path(root) / "ml_pipeline_run"
+    """Azure wwwroot is read-only; never write pipeline JSON under wwwroot."""
+    # WEBSITE_INSTANCE_ID is set on Azure App Service / Functions (including Flex).
+    if os.name != "nt" and os.environ.get("WEBSITE_INSTANCE_ID"):
+        d = Path("/tmp") / "ml_pipeline_run"
+    else:
+        root = os.environ.get("TMPDIR") or os.environ.get("TEMP") or tempfile.gettempdir()
+        d = Path(root) / "ml_pipeline_run"
     d.mkdir(parents=True, exist_ok=True)
-    return d
+    return d.resolve()
 
 
 def _run_pipeline(folder_name: str, profile: str, timeout_seconds: int) -> dict:
