@@ -32,7 +32,17 @@ Set these in the Function App configuration:
 - `AZURE_DB_USER`
 - `AZURE_DB_PASSWORD`
 - `AZURE_DB_SSLMODE` (usually `require`)
-- `FUNCTIONS_WORKER_RUNTIME=python`
+
+### Flex Consumption (your current plan)
+
+Do **not** add these in Azure Portal — deployment will fail validation:
+
+- `SCM_DO_BUILD_DURING_DEPLOYMENT`
+- `ENABLE_ORYX_BUILD`
+
+Also do **not** set `FUNCTIONS_WORKER_RUNTIME` in App Settings on Flex Consumption; the platform manages the worker.
+
+Keep `FUNCTIONS_WORKER_RUNTIME` only in **local** `local.settings.json` for `func start`.
 
 The backend should call this app through:
 
