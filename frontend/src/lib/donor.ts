@@ -64,6 +64,13 @@ export interface DonorDashboardData {
   monthlyGiving: DonorMonthlyGivingPoint[]
   recentDonations: DonorDonation[]
   organizationImpact: DonorOrganizationImpact
+  impactPrediction?: {
+    impactScore: number
+    predictedTopProgramArea: string
+    predictedEducationShare: number
+    modelVersion: string
+    scoredAtUtc: string
+  } | null
 }
 
 export async function getDonorDashboard(): Promise<DonorDashboardData> {

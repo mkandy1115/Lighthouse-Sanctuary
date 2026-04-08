@@ -168,6 +168,51 @@ export interface ReportsSummaryResponse {
   reintegration: { completed: number; totalTracked: number }
 }
 
+export interface MlDonorRiskItem {
+  supporterId: number
+  donorName: string
+  churnScore: number
+  churnTier: 'Low' | 'Medium' | 'High' | string
+  modelVersion: string
+  scoredAtUtc: string
+}
+
+export interface MlSocialPostScoreItem {
+  postId: number
+  platform: string
+  postType?: string | null
+  caption?: string | null
+  churnScore: number
+  upliftScore: number
+  modelVersion: string
+  scoredAtUtc: string
+}
+
+export interface MlResidentReadinessItem {
+  residentId: number
+  caseControlNo: string
+  internalCode: string
+  readinessScore: number
+  readinessTier: 'Early' | 'Developing' | 'Ready' | string
+  modelVersion: string
+  scoredAtUtc: string
+}
+
+export interface MlInsightsResponse {
+  lastRefreshedAtUtc?: string | null
+  donorRisks: MlDonorRiskItem[]
+  socialPostScores: MlSocialPostScoreItem[]
+  residentReadiness: MlResidentReadinessItem[]
+}
+
+export interface MlRefreshResult {
+  refreshedAtUtc: string
+  donorChurnUpdated: number
+  socialPostScoresUpdated: number
+  residentReadinessUpdated: number
+  donorImpactUpdated: number
+}
+
 export function getResidents() {
   return api<StaffResidentListItem[]>('/api/residents')
 }
@@ -370,4 +415,14 @@ export function getAdminDashboard() {
 
 export function getReportsSummary() {
   return api<ReportsSummaryResponse>('/api/reports/summary')
+}
+
+export function getMlInsights() {
+  return api<MlInsightsResponse>('/api/admin/ml-insights')
+}
+
+export function refreshMlInsights() {
+  return api<MlRefreshResult>('/api/admin/ml-insights/refresh', {
+    method: 'POST',
+  })
 }

@@ -8,11 +8,20 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatNumber, formatPercent, formatUsdFromPhp, formatDate } from '@/lib/formatters'
-import { getAdminDashboard, getReportsSummary, type AdminDashboardResponse, type ReportsSummaryResponse } from '@/lib/staff'
+import {
+  getAdminDashboard,
+  getMlInsights,
+  getReportsSummary,
+  refreshMlInsights,
+  type AdminDashboardResponse,
+  type MlInsightsResponse,
+  type ReportsSummaryResponse,
+} from '@/lib/staff'
 
 interface AdminDashboardData {
   dashboard: AdminDashboardResponse
   reports: ReportsSummaryResponse
+  ml: MlInsightsResponse
 }
 
 function monthLabel(value: string): string {
@@ -30,15 +39,17 @@ function numberFromRecord(record: Record<string, unknown>, key: string): number 
 export default function AdminDashboardPage() {
   const [data, setData] = useState<AdminDashboardData | null>(null)
   const [error, setError] = useState('')
+  const [refreshingMl, setRefreshingMl] = useState(false)
 
   useEffect(() => {
     async function load() {
       try {
-        const [dashboard, reports] = await Promise.all([
+        const [dashboard, reports, ml] = await Promise.all([
           getAdminDashboard(),
           getReportsSummary(),
+          getMlInsights(),
         ])
-        setData({ dashboard, reports })
+        setData({ dashboard, reports, ml })
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unable to load admin dashboard.')
       }
@@ -177,8 +188,27 @@ export default function AdminDashboardPage() {
       reintegrationRate,
       totalTracked: data.reports.reintegration.totalTracked,
       completedTracked: data.reports.reintegration.completed,
+      ml: data.ml
     }
   }, [data])
+
+  async function handleRefreshMl() {
+    try {
+      setRefreshingMl(true)
+      await refreshMlInsights()
+      const [dashboard, reports, ml] = await Promise.all([
+        getAdminDashboard(),
+        getReportsSummary(),
+        getMlInsights(),
+      ])
+      setData({ dashboard, reports, ml })
+      setError('')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to refresh ML insights.')
+    } finally {
+      setRefreshingMl(false)
+    }
+  }
 
   if (error) {
     return <div className="py-16 text-center text-rose-700">{error}</div>
@@ -196,6 +226,19 @@ export default function AdminDashboardPage() {
         <p className="mt-1 text-sm text-brand-muted">
           Here&apos;s how Imari: Safe Haven is performing across operations, donations, and resident progress.
         </p>
+        <div className="mt-4 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleRefreshMl}
+            disabled={refreshingMl}
+            className="rounded-lg bg-brand-bronze px-4 py-2 text-xs font-semibold text-white hover:bg-brand-bronze-light disabled:opacity-70"
+          >
+            {refreshingMl ? 'Refreshing ML scores...' : 'Refresh ML Scores'}
+          </button>
+          <span className="text-xs text-brand-muted">
+            Last refreshed: {derived.ml.lastRefreshedAtUtc ? formatDate(derived.ml.lastRefreshedAtUtc) : 'Not yet scored'}
+          </span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
@@ -384,6 +427,106 @@ export default function AdminDashboardPage() {
             </div>
           </div>
           <p className="text-sm text-brand-muted">{derived.completedTracked} completed out of {derived.totalTracked} tracked reintegration cases.</p>
+        </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="rounded-xl border border-brand-border bg-white p-6">
+          <h3 className="font-semibold text-brand-charcoal">Pipeline 1 · Donor Churn Risk</h3>
+          <p className="mt-1 text-xs text-brand-muted">
+            Likelihood that a donor will not give again within one year. Higher scores indicate higher churn risk.
+          </p>
+          <div className="mt-4 max-h-80 overflow-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-brand-border text-left text-brand-muted">
+                  <th className="pb-2">Donor</th>
+                  <th className="pb-2">Risk</th>
+                  <th className="pb-2">Tier</th>
+                </tr>
+              </thead>
+              <tbody>
+                {derived.ml.donorRisks.map((row) => (
+                  <tr key={row.supporterId} className="border-b border-brand-border/70">
+                    <td className="py-2 pr-2 text-brand-charcoal">{row.donorName}</td>
+                    <td className="py-2 pr-2 text-brand-charcoal">{formatPercent(row.churnScore * 100, 1)}</td>
+                    <td className="py-2 text-brand-muted">{row.churnTier}</td>
+                  </tr>
+                ))}
+                {derived.ml.donorRisks.length === 0 && (
+                  <tr>
+                    <td className="py-3 text-brand-muted" colSpan={3}>No churn scores yet. Click Refresh ML Scores.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-brand-border bg-white p-6">
+          <h3 className="font-semibold text-brand-charcoal">Pipelines 2 & 4 · Social Post Scoring</h3>
+          <p className="mt-1 text-xs text-brand-muted">
+            Each post shows donor churn influence (negative) and donor uplift likelihood (positive) for the next year.
+          </p>
+          <div className="mt-4 max-h-80 overflow-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-brand-border text-left text-brand-muted">
+                  <th className="pb-2">Post</th>
+                  <th className="pb-2">Churn</th>
+                  <th className="pb-2">Uplift</th>
+                </tr>
+              </thead>
+              <tbody>
+                {derived.ml.socialPostScores.map((row) => (
+                  <tr key={row.postId} className="border-b border-brand-border/70">
+                    <td className="py-2 pr-2 text-brand-charcoal">
+                      {row.platform} · {row.postType ?? 'Post'} #{row.postId}
+                    </td>
+                    <td className="py-2 pr-2 text-brand-charcoal">{formatPercent(row.churnScore * 100, 1)}</td>
+                    <td className="py-2 text-brand-charcoal">{formatPercent(row.upliftScore * 100, 1)}</td>
+                  </tr>
+                ))}
+                {derived.ml.socialPostScores.length === 0 && (
+                  <tr>
+                    <td className="py-3 text-brand-muted" colSpan={3}>No social post scores yet. Click Refresh ML Scores.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-brand-border bg-white p-6">
+        <h3 className="font-semibold text-brand-charcoal">Pipeline 3 · Participant Reintegration Readiness</h3>
+        <p className="mt-1 text-xs text-brand-muted">
+          Predicted readiness to reintegrate based on current risk, education, attendance, and wellbeing signals.
+        </p>
+        <div className="mt-4 max-h-96 overflow-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-brand-border text-left text-brand-muted">
+                <th className="pb-2">Participant</th>
+                <th className="pb-2">Readiness</th>
+                <th className="pb-2">Tier</th>
+              </tr>
+            </thead>
+            <tbody>
+              {derived.ml.residentReadiness.map((row) => (
+                <tr key={row.residentId} className="border-b border-brand-border/70">
+                  <td className="py-2 pr-2 text-brand-charcoal">{row.caseControlNo} ({row.internalCode})</td>
+                  <td className="py-2 pr-2 text-brand-charcoal">{formatPercent(row.readinessScore * 100, 1)}</td>
+                  <td className="py-2 text-brand-muted">{row.readinessTier}</td>
+                </tr>
+              ))}
+              {derived.ml.residentReadiness.length === 0 && (
+                <tr>
+                  <td className="py-3 text-brand-muted" colSpan={3}>No readiness scores yet. Click Refresh ML Scores.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

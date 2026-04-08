@@ -1,0 +1,177 @@
+name: Reload Prod DB From CSV v7
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_text:
+        description: "Type RELOAD_PROD_DB to confirm full replace"
+        required: true
+        type: string
+      environment_name:
+        description: "Target environment label"
+        required: true
+        default: "production"
+        type: string
+
+jobs:
+  reload:
+    name: Full Reload + ML Refresh
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment_name }}
+    env:
+      PROD_DB_URL: ${{ secrets.PROD_DB_URL }}
+      PROD_API_BASE_URL: ${{ secrets.PROD_API_BASE_URL }}
+      PROD_ADMIN_USERNAME: ${{ secrets.PROD_ADMIN_USERNAME }}
+      PROD_ADMIN_PASSWORD: ${{ secrets.PROD_ADMIN_PASSWORD }}
+
+    steps:
+      - name: Validate manual confirmation
+        shell: bash
+        run: |
+          if [ "${{ github.event.inputs.confirm_text }}" != "RELOAD_PROD_DB" ]; then
+            echo "Confirmation text mismatch. Aborting."
+            exit 1
+          fi
+
+      - name: Validate required secrets
+        shell: bash
+        run: |
+          test -n "$PROD_DB_URL" || (echo "Missing secret: PROD_DB_URL" && exit 1)
+          test -n "$PROD_API_BASE_URL" || (echo "Missing secret: PROD_API_BASE_URL" && exit 1)
+          test -n "$PROD_ADMIN_USERNAME" || (echo "Missing secret: PROD_ADMIN_USERNAME" && exit 1)
+          test -n "$PROD_ADMIN_PASSWORD" || (echo "Missing secret: PROD_ADMIN_PASSWORD" && exit 1)
+
+      - name: Azure Postgres connection preflight
+        shell: bash
+        run: |
+          if [[ "$PROD_DB_URL" != *"postgres.database.azure.com"* ]]; then
+            echo "PROD_DB_URL must target Azure Database for PostgreSQL host (*.postgres.database.azure.com)."
+            exit 1
+          fi
+          if [[ "$PROD_DB_URL" != *"sslmode=require"* ]]; then
+            echo "PROD_DB_URL must include sslmode=require for Azure PostgreSQL."
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Build runtime schema script (no create database / tx wrapper)
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          src = Path("schema_postgres_supabase.sql").read_text(encoding="utf-8")
+          lines = []
+          for ln in src.splitlines():
+            norm = ln.strip().lower()
+            if norm in {"begin;", "commit;"}:
+              continue
+            if "create database lh_sanctuary" in norm:
+              continue
+            lines.append(ln)
+          Path("schema_runtime.sql").write_text("\n".join(lines) + "\n", encoding="utf-8")
+          print("Wrote schema_runtime.sql")
+          PY
+
+      - name: Apply schema
+        shell: bash
+        run: psql "$PROD_DB_URL" -v ON_ERROR_STOP=1 -f "schema_runtime.sql"
+
+      - name: Full replace from CSV v7
+        shell: bash
+        working-directory: lighthouse_csv_v7
+        run: psql "$PROD_DB_URL" -v ON_ERROR_STOP=1 -f "load_csv_psql.sql"
+
+      - name: Row count parity check (CSV vs DB)
+        shell: bash
+        run: |
+          set -euo pipefail
+          tables=(
+            safehouses partners supporters social_media_posts residents partner_assignments
+            donations in_kind_donation_items donation_allocations process_recordings
+            home_visitations education_records health_wellbeing_records intervention_plans
+            incident_reports safehouse_monthly_metrics public_impact_snapshots
+          )
+
+          echo "Table,CSVRows,DBRows,Match"
+          for t in "${tables[@]}"; do
+            csv_rows=$(( $(wc -l < "lighthouse_csv_v7/${t}.csv") - 1 ))
+            db_rows=$(psql "$PROD_DB_URL" -Atc "select count(*) from ${t}")
+            match="true"
+            if [ "$csv_rows" != "$db_rows" ]; then
+              match="false"
+              echo "Mismatch detected for ${t}"
+              echo "${t},${csv_rows},${db_rows},${match}"
+              exit 1
+            fi
+            echo "${t},${csv_rows},${db_rows},${match}"
+          done
+
+      - name: Refresh ML scores via API
+        shell: bash
+        run: |
+          set -euo pipefail
+          login_response=$(curl -sS -X POST "${PROD_API_BASE_URL}/api/auth/login" \
+            -H "Content-Type: application/json" \
+            -d "{\"username\":\"${PROD_ADMIN_USERNAME}\",\"password\":\"${PROD_ADMIN_PASSWORD}\"}")
+
+          token=$(python3 - <<'PY' "$login_response"
+          import json, sys
+          payload = json.loads(sys.argv[1])
+          token = payload.get("token")
+          if not token:
+              raise SystemExit("Login failed: token missing")
+          print(token)
+          PY
+          )
+
+          curl -sS -X POST "${PROD_API_BASE_URL}/api/admin/ml-insights/refresh" \
+            -H "Authorization: Bearer ${token}" \
+            -H "Content-Type: application/json"
+
+      - name: Verify ML endpoints after refresh
+        shell: bash
+        run: |
+          set -euo pipefail
+          login_response=$(curl -sS -X POST "${PROD_API_BASE_URL}/api/auth/login" \
+            -H "Content-Type: application/json" \
+            -d "{\"username\":\"${PROD_ADMIN_USERNAME}\",\"password\":\"${PROD_ADMIN_PASSWORD}\"}")
+          token=$(python3 - <<'PY' "$login_response"
+          import json, sys
+          payload = json.loads(sys.argv[1])
+          token = payload.get("token")
+          if not token:
+              raise SystemExit("Login failed: token missing")
+          print(token)
+          PY
+          )
+
+          admin_payload=$(curl -sS "${PROD_API_BASE_URL}/api/admin/ml-insights")
+          python3 - <<'PY' "$admin_payload"
+          import json, sys
+          payload = json.loads(sys.argv[1])
+          print({
+              "lastRefreshedAtUtc": payload.get("lastRefreshedAtUtc"),
+              "donorRisks": len(payload.get("donorRisks", [])),
+              "socialPostScores": len(payload.get("socialPostScores", [])),
+              "residentReadiness": len(payload.get("residentReadiness", [])),
+          })
+          PY
+
+          donor_payload=$(curl -sS -H "Authorization: Bearer ${token}" "${PROD_API_BASE_URL}/api/donor/dashboard")
+          python3 - <<'PY' "$donor_payload"
+          import json, sys
+          payload = json.loads(sys.argv[1])
+          impact = payload.get("impactPrediction")
+          print({
+              "hasImpactPrediction": impact is not None,
+              "modelVersion": (impact or {}).get("modelVersion"),
+          })
+          PY

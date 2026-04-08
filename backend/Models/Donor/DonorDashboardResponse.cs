@@ -7,6 +7,7 @@ public class DonorDashboardResponse
     public List<DonorMonthlyGivingPointDto> MonthlyGiving { get; set; } = [];
     public List<DonorDonationDto> RecentDonations { get; set; } = [];
     public DonorOrganizationImpactDto OrganizationImpact { get; set; } = new();
+    public DonorImpactPredictionDto? ImpactPrediction { get; set; }
 }
 
 public class DonorProfileDto
@@ -72,4 +73,13 @@ public class OrganizationCampaignBreakdownDto
     public string Label { get; set; } = string.Empty;
     public decimal TotalAmount { get; set; }
     public int DonationCount { get; set; }
+}
+
+public class DonorImpactPredictionDto
+{
+    public decimal ImpactScore { get; set; }
+    public string PredictedTopProgramArea { get; set; } = string.Empty;
+    public decimal PredictedEducationShare { get; set; }
+    public string ModelVersion { get; set; } = string.Empty;
+    public string ScoredAtUtc { get; set; } = string.Empty;
 }

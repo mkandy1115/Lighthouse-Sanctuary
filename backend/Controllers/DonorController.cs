@@ -163,6 +163,9 @@ public class DonorController(LighthouseContext context) : ControllerBase
         var averageGiftAmount = allMonetaryDonations.Count != 0
             ? totalContributionValue / allMonetaryDonations.Count
             : 0m;
+        var impactPrediction = await context.MlDonorImpactPredictions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(row => row.SupporterId == supporter.SupporterId);
 
         var response = new DonorDashboardResponse
         {
@@ -210,7 +213,17 @@ public class DonorController(LighthouseContext context) : ControllerBase
                 AverageGiftAmount = decimal.Round(averageGiftAmount, 2),
                 MonthlyTrends = organizationMonthlyTrends,
                 CampaignBreakdown = campaignBreakdown
-            }
+            },
+            ImpactPrediction = impactPrediction is null
+                ? null
+                : new DonorImpactPredictionDto
+                {
+                    ImpactScore = impactPrediction.ImpactScore,
+                    PredictedTopProgramArea = impactPrediction.PredictedTopProgramArea,
+                    PredictedEducationShare = impactPrediction.PredictedEducationShare,
+                    ModelVersion = impactPrediction.ModelVersion,
+                    ScoredAtUtc = impactPrediction.ScoredAtUtc.ToString("O", CultureInfo.InvariantCulture)
+                }
         };
 
         return Ok(response);

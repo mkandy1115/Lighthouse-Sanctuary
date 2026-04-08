@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils'
 import { clearAuthSession, getStoredAuthUser } from '@/lib/auth'
 import Modal from '@/components/ui/Modal'
 import { createDonorDonation, getDonorDashboard, type DonorDashboardData } from '@/lib/donor'
-import { convertPhpToUsd, convertUsdToPhp, formatCurrency, formatDate, formatUsdFromPhp, initials } from '@/lib/formatters'
+import { convertPhpToUsd, convertUsdToPhp, formatCurrency, formatDate, formatPercent, formatUsdFromPhp, initials } from '@/lib/formatters'
 
 const navItems = [
   { label: 'My Impact', icon: Sparkles, key: 'impact' },
@@ -156,7 +156,7 @@ function ImpactView({ data }: ImpactViewProps) {
 }
 
 function PersonalImpact({ data }: ImpactViewProps) {
-  const { profile, summary, monthlyGiving, recentDonations, organizationImpact } = data
+  const { profile, summary, monthlyGiving, recentDonations, organizationImpact, impactPrediction } = data
 
   const personalAllocation = useMemo(() => {
     const total = summary.totalGiven || 0
@@ -254,6 +254,35 @@ function PersonalImpact({ data }: ImpactViewProps) {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="bg-white rounded-xl border border-brand-border p-6">
+        <h3 className="font-semibold text-brand-charcoal mb-1">Pipeline 5 · Predicted Impact Allocation</h3>
+        <p className="text-brand-muted text-sm mb-5">
+          Prediction of how your giving is likely to translate into program impact based on historical allocation behavior.
+        </p>
+        {impactPrediction ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="rounded-lg bg-brand-stone p-4">
+              <p className="text-xs uppercase tracking-wider text-brand-muted">Impact Score</p>
+              <p className="mt-1 font-serif text-2xl text-brand-charcoal">
+                {formatPercent(impactPrediction.impactScore * 100, 1)}
+              </p>
+            </div>
+            <div className="rounded-lg bg-brand-stone p-4">
+              <p className="text-xs uppercase tracking-wider text-brand-muted">Top Program Area</p>
+              <p className="mt-1 font-semibold text-brand-charcoal">{impactPrediction.predictedTopProgramArea}</p>
+            </div>
+            <div className="rounded-lg bg-brand-stone p-4">
+              <p className="text-xs uppercase tracking-wider text-brand-muted">Education Share</p>
+              <p className="mt-1 font-semibold text-brand-charcoal">
+                {formatPercent(impactPrediction.predictedEducationShare * 100, 1)}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-brand-muted">No Pipeline 5 prediction is available yet. Ask staff to refresh ML scores.</p>
+        )}
       </div>
 
       <div className="bg-white rounded-xl border border-brand-border overflow-hidden">

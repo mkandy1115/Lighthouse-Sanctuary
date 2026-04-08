@@ -19,6 +19,10 @@ public class LighthouseContext(DbContextOptions<LighthouseContext> options) : Db
     public DbSet<HealthWellbeingRecord> HealthWellbeingRecords => Set<HealthWellbeingRecord>();
     public DbSet<InterventionPlan> InterventionPlans => Set<InterventionPlan>();
     public DbSet<SafehouseMonthlyMetric> SafehouseMonthlyMetrics => Set<SafehouseMonthlyMetric>();
+    public DbSet<MlDonorChurnScore> MlDonorChurnScores => Set<MlDonorChurnScore>();
+    public DbSet<MlSocialPostScore> MlSocialPostScores => Set<MlSocialPostScore>();
+    public DbSet<MlResidentReadinessScore> MlResidentReadinessScores => Set<MlResidentReadinessScore>();
+    public DbSet<MlDonorImpactPrediction> MlDonorImpactPredictions => Set<MlDonorImpactPrediction>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -36,5 +40,9 @@ public class LighthouseContext(DbContextOptions<LighthouseContext> options) : Db
         modelBuilder.Entity<HealthWellbeingRecord>().ToTable("health_wellbeing_records");
         modelBuilder.Entity<InterventionPlan>().ToTable("intervention_plans");
         modelBuilder.Entity<SafehouseMonthlyMetric>().ToTable("safehouse_monthly_metrics");
+        modelBuilder.Entity<MlDonorChurnScore>().ToTable("ml_donor_churn_scores");
+        modelBuilder.Entity<MlSocialPostScore>().ToTable("ml_social_post_scores");
+        modelBuilder.Entity<MlResidentReadinessScore>().ToTable("ml_resident_readiness_scores");
+        modelBuilder.Entity<MlDonorImpactPrediction>().ToTable("ml_donor_impact_predictions");
     }
 }
