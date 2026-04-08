@@ -1,6 +1,12 @@
 # Deploys the Python Function App in Pipelines/ to Azure when that folder changes.
-# Requires GitHub repo secrets (see comments below). OIDC must allow this workflow file
-# on the same Azure AD app registration used for backend deploy (or add a federated credential).
+#
+# Uses a publish profile (SCM credentials) so Azure/functions-action does NOT run RBAC
+# resource validation — that step often fails for Flex Consumption with
+# "Microsoft.Web/Sites doesn't exist" even when the app is correct.
+#
+# Required GitHub Actions secrets:
+#   AZURE_FUNCTIONAPP_NAME           — Function App name (Portal → Overview → Name)
+#   AZURE_FUNCTIONAPP_PUBLISH_PROFILE — full contents of the .PublishSettings file
 
 name: Deploy Function App - lh-sanctuary-ml-pipelines
 
@@ -17,7 +23,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
       contents: read
 
     steps:
@@ -32,20 +37,12 @@ jobs:
       - name: Validate function_app.py
         run: python -m py_compile Pipelines/function_app.py
 
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_31C7C051C20C4A1381276707C5D05E0B }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_5D38AD2B52E343CCA28A5F40683BEEDE }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_4A73066E6DDE4481A0EBF87461F15D0B }}
-
-      # Flex Consumption: declare sku so RBAC validation finds the site (avoids "Sites doesn't exist").
-      # Use remote-build (not scm-do-build/enable-oryx) for Flex + Python per functions-action docs.
       - name: Deploy to Azure Functions
         uses: Azure/functions-action@v1
         with:
           app-name: ${{ secrets.AZURE_FUNCTIONAPP_NAME }}
           package: ${{ github.workspace }}/Pipelines
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
           sku: flexconsumption
           remote-build: true
           respect-funcignore: true

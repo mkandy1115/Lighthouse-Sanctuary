@@ -55,20 +55,15 @@ Workflow: `.github/workflows/deploy-lh-sanctuary-ml-pipelines.yml`
 
 Runs on every push to `main` that changes files under `Pipelines/` (or the workflow file itself). You can also run it manually: **Actions → Deploy Function App - lh-sanctuary-ml-pipelines → Run workflow**.
 
-### Repository secret to add
+### Repository secrets (required)
 
 In GitHub: **Settings → Secrets and variables → Actions → New repository secret**
 
-| Name | Example value |
+| Name | How to get it |
 |------|----------------|
-| `AZURE_FUNCTIONAPP_NAME` | `lh-sanctuary-ml-pipelines` |
+| `AZURE_FUNCTIONAPP_NAME` | Azure Portal → your Function App → **Overview** → **Name** (e.g. `lh-sanctuary-ml-pipelines`). |
+| `AZURE_FUNCTIONAPP_PUBLISH_PROFILE` | Azure Portal → same Function App → top bar **Get publish profile** → downloads a `.PublishSettings` file. Open it in a text editor, **copy the entire XML**, paste as the secret value. |
 
-The workflow reuses the same Azure OIDC secrets as the API deploy (`AZUREAPPSERVICE_CLIENTID_*`, `AZUREAPPSERVICE_TENANTID_*`, `AZUREAPPSERVICE_SUBSCRIPTIONID_*`). If login fails after adding this workflow, add a **federated credential** in Entra ID for the new workflow file path (or use a credential scoped to the whole repo/branch).
+The workflow uses the **publish profile** so deploy does not rely on RBAC resource lookup (avoids Flex Consumption errors like `Microsoft.Web/Sites doesn't exist` during validation).
 
-### If deploy fails with `Resource ... Microsoft.Web/Sites doesn't exist`
-
-1. **`AZURE_FUNCTIONAPP_NAME`** must match the Function App **Name** in Azure Portal (Overview), with no typos or extra spaces.
-2. **`AZUREAPPSERVICE_SUBSCRIPTIONID_*`** must be the subscription **where that Function App actually lives** (Portal → Function app → Overview → Subscription).
-3. The Entra app used for OIDC (same client ID as the API workflow) needs **Contributor** (or **Website Contributor**) on that Function App or its **resource group** (Portal → Resource group → Access control (IAM) → Add role assignment).
-
-Optional fallback: download the Function App **publish profile** from Portal → **Get publish profile**, store it as secret `AZURE_FUNCTIONAPP_PUBLISH_PROFILE`, and switch the workflow deploy step to pass `publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}` (validation is skipped when using a publish profile).
+Treat the publish profile like a password; rotate it in Portal (**Reset publish profile**) if it leaks.
