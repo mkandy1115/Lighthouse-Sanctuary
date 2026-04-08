@@ -291,7 +291,7 @@ export async function deleteResident(
     return false
   }
 
-  const response = await fetch(`${getApiBaseUrl()}/api/residents/${id}`, {
+  const response = await fetch(`${getApiBaseUrl()}/api/residents/${id}?confirm=true`, {
     method: 'DELETE',
     headers: {
       ...getAuthorizationHeaders(),

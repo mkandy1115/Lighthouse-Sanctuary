@@ -1,4 +1,5 @@
 using Lighthouse.Sanctuary.Api.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,6 +7,7 @@ namespace Lighthouse.Sanctuary.Api.Controllers;
 
 [ApiController]
 [Route("api/admin/dashboard")]
+[Authorize(Roles = "Admin")]
 public class AdminDashboardController(LighthouseContext context) : ControllerBase
 {
     [HttpGet]

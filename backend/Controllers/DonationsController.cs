@@ -1,6 +1,7 @@
 using Lighthouse.Sanctuary.Api.Data;
 using Lighthouse.Sanctuary.Api.Models;
 using Lighthouse.Sanctuary.Api.Models.Donations;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +9,7 @@ namespace Lighthouse.Sanctuary.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Admin")]
 public class DonationsController(LighthouseContext context) : ControllerBase
 {
     [HttpGet]
@@ -27,6 +29,7 @@ public class DonationsController(LighthouseContext context) : ControllerBase
     }
 
     [HttpPost("public")]
+    [AllowAnonymous]
     public async Task<IActionResult> CreatePublicDonation([FromBody] PublicDonationRequest request)
     {
         if (request.Amount <= 0)

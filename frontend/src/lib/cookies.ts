@@ -10,11 +10,22 @@ export function getCookieConsent(): CookieConsentMode | null {
     return value
   }
 
+  const fromCookie = document.cookie
+    .split(';')
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${COOKIE_CONSENT_KEY}=`))
+    ?.split('=')[1]
+  if (fromCookie === 'essential' || fromCookie === 'all') {
+    return fromCookie
+  }
+
   return null
 }
 
 export function saveCookieConsent(mode: CookieConsentMode) {
   localStorage.setItem(COOKIE_CONSENT_KEY, mode)
+  const maxAgeDays = 365
+  document.cookie = `${COOKIE_CONSENT_KEY}=${mode}; path=/; max-age=${maxAgeDays * 24 * 60 * 60}; SameSite=Lax`
 }
 
 export function openCookiePreferences() {

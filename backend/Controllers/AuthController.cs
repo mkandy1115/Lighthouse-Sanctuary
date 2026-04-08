@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace Lighthouse.Sanctuary.Api.Controllers;
 
@@ -17,6 +18,40 @@ public class AuthController(
     IPasswordHasher<AppUser> passwordHasher,
     JwtTokenService jwtTokenService) : ControllerBase
 {
+    private static readonly Regex LowercaseRegex = new("[a-z]", RegexOptions.Compiled);
+    private static readonly Regex UppercaseRegex = new("[A-Z]", RegexOptions.Compiled);
+    private static readonly Regex DigitRegex = new("[0-9]", RegexOptions.Compiled);
+    private static readonly Regex NonAlphaNumericRegex = new("[^a-zA-Z0-9]", RegexOptions.Compiled);
+
+    private static string? ValidatePasswordPolicy(string password, string? username = null)
+    {
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return "Password is required.";
+        }
+
+        if (password.Length < 14)
+        {
+            return "Password must be at least 14 characters.";
+        }
+
+        if (!LowercaseRegex.IsMatch(password)
+            || !UppercaseRegex.IsMatch(password)
+            || !DigitRegex.IsMatch(password)
+            || !NonAlphaNumericRegex.IsMatch(password))
+        {
+            return "Password must include uppercase, lowercase, number, and special character.";
+        }
+
+        if (!string.IsNullOrWhiteSpace(username)
+            && password.Contains(username, StringComparison.OrdinalIgnoreCase))
+        {
+            return "Password must not contain your username.";
+        }
+
+        return null;
+    }
+
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
@@ -74,9 +109,10 @@ public class AuthController(
             return BadRequest(new { message = "First name, last name, email, username, and password are required." });
         }
 
-        if (request.Password.Length < 8)
+        var passwordError = ValidatePasswordPolicy(request.Password, username);
+        if (passwordError is not null)
         {
-            return BadRequest(new { message = "Password must be at least 8 characters." });
+            return BadRequest(new { message = passwordError });
         }
 
         var usernameExists = await context.AppUsers.AnyAsync(user =>
@@ -155,9 +191,10 @@ public class AuthController(
             return BadRequest(new { message = "Supporter ID, username, and password are required." });
         }
 
-        if (request.Password.Length < 8)
+        var passwordError = ValidatePasswordPolicy(request.Password, username);
+        if (passwordError is not null)
         {
-            return BadRequest(new { message = "Password must be at least 8 characters." });
+            return BadRequest(new { message = passwordError });
         }
 
         var usernameExists = await context.AppUsers.AnyAsync(user =>
@@ -233,11 +270,6 @@ public class AuthController(
             return BadRequest(new { message = "Current password and new password are required." });
         }
 
-        if (request.NewPassword.Length < 8)
-        {
-            return BadRequest(new { message = "New password must be at least 8 characters." });
-        }
-
         if (request.NewPassword == request.CurrentPassword)
         {
             return BadRequest(new { message = "New password must be different from your current password." });
@@ -253,6 +285,12 @@ public class AuthController(
         if (user is null || !user.IsActive)
         {
             return Unauthorized();
+        }
+
+        var passwordError = ValidatePasswordPolicy(request.NewPassword, user.Username);
+        if (passwordError is not null)
+        {
+            return BadRequest(new { message = passwordError });
         }
 
         var currentCheck = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.CurrentPassword);

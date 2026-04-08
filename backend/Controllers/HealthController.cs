@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Lighthouse.Sanctuary.Api.Controllers;
 
@@ -7,6 +8,7 @@ namespace Lighthouse.Sanctuary.Api.Controllers;
 public class HealthController : ControllerBase
 {
     [HttpGet]
+    [AllowAnonymous]
     public IActionResult Get()
     {
         return Ok(new

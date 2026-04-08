@@ -1,4 +1,5 @@
 using Lighthouse.Sanctuary.Api.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,6 +10,7 @@ namespace Lighthouse.Sanctuary.Api.Controllers;
 public class SiteMetricsController(LighthouseContext context) : ControllerBase
 {
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> Get()
     {
         var girlsSupported = await context.Residents.CountAsync(r => r.Sex == "F");

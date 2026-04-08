@@ -1,6 +1,7 @@
 using Lighthouse.Sanctuary.Api.Data;
 using Lighthouse.Sanctuary.Api.Models;
 using Lighthouse.Sanctuary.Api.Models.Residents;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +9,7 @@ namespace Lighthouse.Sanctuary.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Admin")]
 public class ResidentsController(LighthouseContext context) : ControllerBase
 {
     [HttpGet]
@@ -218,8 +220,13 @@ public class ResidentsController(LighthouseContext context) : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> DeleteResident(int id)
+    public async Task<IActionResult> DeleteResident(int id, [FromQuery] bool confirm = false)
     {
+        if (!confirm)
+        {
+            return BadRequest(new { message = "Deletion requires explicit confirmation." });
+        }
+
         var resident = await context.Residents.FirstOrDefaultAsync(record => record.ResidentId == id);
         if (resident is null)
         {

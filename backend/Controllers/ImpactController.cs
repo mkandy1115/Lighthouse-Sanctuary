@@ -1,4 +1,5 @@
 using Lighthouse.Sanctuary.Api.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,6 +10,7 @@ namespace Lighthouse.Sanctuary.Api.Controllers;
 public class ImpactController(LighthouseContext context) : ControllerBase
 {
     [HttpGet("latest")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetLatestSnapshot()
     {
         var snapshot = await context.PublicImpactSnapshots
@@ -19,6 +21,7 @@ public class ImpactController(LighthouseContext context) : ControllerBase
     }
 
     [HttpGet("summary")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetSummary()
     {
         var activeResidents = await context.Residents.CountAsync(r => r.CaseStatus == "Active");

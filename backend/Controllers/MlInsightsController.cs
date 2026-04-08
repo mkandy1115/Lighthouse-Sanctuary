@@ -1,6 +1,7 @@
 using Lighthouse.Sanctuary.Api.Data;
 using Lighthouse.Sanctuary.Api.Models.Admin;
 using Lighthouse.Sanctuary.Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +9,7 @@ namespace Lighthouse.Sanctuary.Api.Controllers;
 
 [ApiController]
 [Route("api/admin/ml-insights")]
+[Authorize(Roles = "Admin")]
 public class MlInsightsController(LighthouseContext context, MlScoringService scoringService) : ControllerBase
 {
     [HttpGet]
