@@ -64,3 +64,11 @@ In GitHub: **Settings → Secrets and variables → Actions → New repository s
 | `AZURE_FUNCTIONAPP_NAME` | `lh-sanctuary-ml-pipelines` |
 
 The workflow reuses the same Azure OIDC secrets as the API deploy (`AZUREAPPSERVICE_CLIENTID_*`, `AZUREAPPSERVICE_TENANTID_*`, `AZUREAPPSERVICE_SUBSCRIPTIONID_*`). If login fails after adding this workflow, add a **federated credential** in Entra ID for the new workflow file path (or use a credential scoped to the whole repo/branch).
+
+### If deploy fails with `Resource ... Microsoft.Web/Sites doesn't exist`
+
+1. **`AZURE_FUNCTIONAPP_NAME`** must match the Function App **Name** in Azure Portal (Overview), with no typos or extra spaces.
+2. **`AZUREAPPSERVICE_SUBSCRIPTIONID_*`** must be the subscription **where that Function App actually lives** (Portal → Function app → Overview → Subscription).
+3. The Entra app used for OIDC (same client ID as the API workflow) needs **Contributor** (or **Website Contributor**) on that Function App or its **resource group** (Portal → Resource group → Access control (IAM) → Add role assignment).
+
+Optional fallback: download the Function App **publish profile** from Portal → **Get publish profile**, store it as secret `AZURE_FUNCTIONAPP_PUBLISH_PROFILE`, and switch the workflow deploy step to pass `publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}` (validation is skipped when using a publish profile).

@@ -39,12 +39,13 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_5D38AD2B52E343CCA28A5F40683BEEDE }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_4A73066E6DDE4481A0EBF87461F15D0B }}
 
-      # Flex Consumption rejects SCM_DO_BUILD_DURING_DEPLOYMENT / ENABLE_ORYX_BUILD as app settings;
-      # disable Oryx flags here so deploy does not try to set them.
+      # Flex Consumption: declare sku so RBAC validation finds the site (avoids "Sites doesn't exist").
+      # Use remote-build (not scm-do-build/enable-oryx) for Flex + Python per functions-action docs.
       - name: Deploy to Azure Functions
         uses: Azure/functions-action@v1
         with:
           app-name: ${{ secrets.AZURE_FUNCTIONAPP_NAME }}
           package: ${{ github.workspace }}/Pipelines
-          scm-do-build-during-deployment: false
-          enable-oryx-build: false
+          sku: flexconsumption
+          remote-build: true
+          respect-funcignore: true
