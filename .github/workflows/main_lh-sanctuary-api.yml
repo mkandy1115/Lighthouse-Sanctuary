@@ -30,14 +30,6 @@ jobs:
         with:
           dotnet-version: '10.x'
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Validate ML pipeline dependencies
-        run: python -m pip install -r "${{ github.workspace }}/ml-pipeline-requirements.txt"
-
       - name: Restore
         run: dotnet restore .\Lighthouse.Sanctuary.Api.csproj
 
@@ -46,15 +38,6 @@ jobs:
 
       - name: dotnet publish
         run: dotnet publish .\Lighthouse.Sanctuary.Api.csproj -c Release -o "${{ github.workspace }}/backend-publish" --no-build
-
-      - name: Include ML pipeline runtime files in artifact
-        run: |
-          xcopy "${{ github.workspace }}\ML_Pipeline_1" "${{ github.workspace }}\backend-publish\ML_Pipeline_1\" /E /I /Y
-          xcopy "${{ github.workspace }}\ML_Pipeline_2" "${{ github.workspace }}\backend-publish\ML_Pipeline_2\" /E /I /Y
-          xcopy "${{ github.workspace }}\ML_Pipeline_3" "${{ github.workspace }}\backend-publish\ML_Pipeline_3\" /E /I /Y
-          xcopy "${{ github.workspace }}\ML_Pipeline_4" "${{ github.workspace }}\backend-publish\ML_Pipeline_4\" /E /I /Y
-          xcopy "${{ github.workspace }}\ML_Pipeline_5" "${{ github.workspace }}\backend-publish\ML_Pipeline_5\" /E /I /Y
-          copy "${{ github.workspace }}\ml-pipeline-requirements.txt" "${{ github.workspace }}\backend-publish\ml-pipeline-requirements.txt"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4

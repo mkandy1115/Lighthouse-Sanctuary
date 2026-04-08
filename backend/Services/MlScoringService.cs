@@ -1,6 +1,5 @@
-using System.Diagnostics;
-using System.ComponentModel;
 using System.Text.Json;
+using System.Net.Http.Json;
 using Lighthouse.Sanctuary.Api.Data;
 using Lighthouse.Sanctuary.Api.Models;
 using Lighthouse.Sanctuary.Api.Models.Admin;
@@ -11,24 +10,20 @@ namespace Lighthouse.Sanctuary.Api.Services;
 public class MlScoringService(
     LighthouseContext context,
     IConfiguration configuration,
-    IWebHostEnvironment environment)
+    IHttpClientFactory httpClientFactory)
 {
     public async Task<MlRefreshResult> RefreshAllAsync()
     {
         var now = DateTime.UtcNow;
-
         var runContext = BuildRunContext();
-        var p1 = await RunPipeline(runContext, "ML_Pipeline_1");
-        var p2 = await RunPipeline(runContext, "ML_Pipeline_2");
-        var p3 = await RunPipeline(runContext, "ML_Pipeline_3");
-        var p4 = await RunPipeline(runContext, "ML_Pipeline_4");
-        var p5 = await RunPipeline(runContext, "ML_Pipeline_5");
+        using var payload = await RunFunctionApp(runContext);
+        var root = payload.RootElement;
 
-        var donorScores = ParseDonorChurnScores(p1);
-        var socialScores = ParseSocialScores(p2);
-        var readinessScores = ParseReadinessScores(p3);
-        var donorUplift = ParseDonorUpliftScores(p4);
-        var impactPredictions = ParseImpactPredictions(p5);
+        var donorScores = ParseDonorChurnScores(root.GetProperty("pipeline1"));
+        var socialScores = ParseSocialScores(root.GetProperty("pipeline2"));
+        var readinessScores = ParseReadinessScores(root.GetProperty("pipeline3"));
+        var donorUplift = ParseDonorUpliftScores(root.GetProperty("pipeline4"));
+        var impactPredictions = ParseImpactPredictions(root.GetProperty("pipeline5"));
 
         // Pipeline 4 is donor-level uplift; blend average uplift into post-level outputs for dashboard comparability.
         if (socialScores.Count > 0 && donorUplift.Count > 0)
@@ -58,118 +53,56 @@ public class MlScoringService(
         };
     }
 
-    private (string pythonExe, string pipelineRoot, int timeoutMs, string profile) BuildRunContext()
+    private (string functionUrl, string? functionKey, int timeoutMs, string profile) BuildRunContext()
     {
-        var pythonExe = configuration["MlRuntime:PythonExecutable"];
-        if (string.IsNullOrWhiteSpace(pythonExe))
+        var functionUrl = configuration["MlRuntime:FunctionAppUrl"];
+        if (string.IsNullOrWhiteSpace(functionUrl))
         {
-            pythonExe = "python3";
+            throw new InvalidOperationException("Missing MlRuntime:FunctionAppUrl configuration.");
         }
 
-        var configuredRoot = configuration["MlRuntime:PipelineRoot"];
-        var pipelineRoot = string.IsNullOrWhiteSpace(configuredRoot)
-            ? Path.GetFullPath(Path.Combine(environment.ContentRootPath, ".."))
-            : Path.GetFullPath(
-                Path.IsPathRooted(configuredRoot)
-                    ? configuredRoot
-                    : Path.Combine(environment.ContentRootPath, configuredRoot));
+        var functionKey = configuration["MlRuntime:FunctionKey"];
 
         var timeoutMs = int.TryParse(configuration["MlRuntime:TimeoutMs"], out var parsedTimeout)
             ? parsedTimeout
-            : 120000;
+            : 180000;
 
-        var profile = configuration["MlRuntime:DbProfile"] ?? "local";
-        return (pythonExe, pipelineRoot, timeoutMs, profile);
+        var profile = configuration["MlRuntime:DbProfile"] ?? "azure";
+        return (functionUrl.TrimEnd('/'), functionKey, timeoutMs, profile);
     }
 
-    private async Task<JsonDocument> RunPipeline((string pythonExe, string pipelineRoot, int timeoutMs, string profile) ctx, string pipelineFolder)
+    private async Task<JsonDocument> RunFunctionApp((string functionUrl, string? functionKey, int timeoutMs, string profile) ctx)
     {
-        var folder = Path.Combine(ctx.pipelineRoot, pipelineFolder);
-        var script = Path.Combine(folder, "run_pipeline.py");
-        if (!File.Exists(script))
+        var url = $"{ctx.functionUrl}/api/refresh-all";
+        if (!string.IsNullOrWhiteSpace(ctx.functionKey))
         {
-            throw new InvalidOperationException($"Pipeline script not found: {script}");
+            url = $"{url}?code={Uri.EscapeDataString(ctx.functionKey)}";
         }
 
-        var tempOutput = Path.GetTempFileName();
-        try
+        using var client = httpClientFactory.CreateClient();
+        client.Timeout = TimeSpan.FromMilliseconds(ctx.timeoutMs);
+        using var request = new HttpRequestMessage(HttpMethod.Post, url)
         {
-            await ExecutePython(ctx.pythonExe, script, folder, tempOutput, ctx.profile, ctx.timeoutMs, pipelineFolder);
-
-            if (!File.Exists(tempOutput))
+            Content = JsonContent.Create(new
             {
-                throw new InvalidOperationException($"Pipeline output file missing for {pipelineFolder}.");
-            }
-
-            using var fs = File.OpenRead(tempOutput);
-            return await JsonDocument.ParseAsync(fs);
-        }
-        catch (Win32Exception ex)
-        {
-            if (ctx.pythonExe == "python3")
-            {
-                await ExecutePython("python", script, folder, tempOutput, ctx.profile, ctx.timeoutMs, pipelineFolder);
-                using var fs = File.OpenRead(tempOutput);
-                return await JsonDocument.ParseAsync(fs);
-            }
-            throw new InvalidOperationException($"Python executable not found or not runnable ({ctx.pythonExe}).", ex);
-        }
-        finally
-        {
-            if (File.Exists(tempOutput))
-            {
-                File.Delete(tempOutput);
-            }
-        }
-    }
-
-    private static async Task ExecutePython(
-        string pythonExe,
-        string script,
-        string folder,
-        string outputPath,
-        string profile,
-        int timeoutMs,
-        string pipelineFolder)
-    {
-        var args = $"\"{script}\" --profile {profile} --output \"{outputPath}\"";
-        var startInfo = new ProcessStartInfo
-        {
-            FileName = pythonExe,
-            Arguments = args,
-            WorkingDirectory = folder,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
+                profile = ctx.profile,
+                timeoutSeconds = Math.Max(30, ctx.timeoutMs / 1000)
+            })
         };
 
-        using var process = new Process { StartInfo = startInfo };
-        process.Start();
-
-        var stdOutTask = process.StandardOutput.ReadToEndAsync();
-        var stdErrTask = process.StandardError.ReadToEndAsync();
-
-        var completed = await Task.Run(() => process.WaitForExit(timeoutMs));
-        if (!completed)
-        {
-            try { process.Kill(true); } catch { }
-            throw new InvalidOperationException($"Pipeline timed out ({pipelineFolder}) after {timeoutMs}ms.");
-        }
-
-        var stdOut = await stdOutTask;
-        var stdErr = await stdErrTask;
-
-        if (process.ExitCode != 0)
+        using var response = await client.SendAsync(request);
+        var body = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode)
         {
             throw new InvalidOperationException(
-                $"Pipeline failed ({pipelineFolder}) with exit code {process.ExitCode}. stderr: {stdErr} stdout: {stdOut}");
+                $"Function App refresh failed ({(int)response.StatusCode} {response.ReasonPhrase}). Body: {body}");
         }
+        return JsonDocument.Parse(body);
     }
 
-    private static List<MlDonorChurnScore> ParseDonorChurnScores(JsonDocument doc)
+    private static List<MlDonorChurnScore> ParseDonorChurnScores(JsonElement pipelineResult)
     {
-        var records = ReadRecords(doc);
+        var records = ReadRecords(pipelineResult);
         var output = new List<MlDonorChurnScore>();
         foreach (var row in records)
         {
@@ -185,9 +118,9 @@ public class MlScoringService(
         return output;
     }
 
-    private static List<MlSocialPostScore> ParseSocialScores(JsonDocument doc)
+    private static List<MlSocialPostScore> ParseSocialScores(JsonElement pipelineResult)
     {
-        var records = ReadRecords(doc);
+        var records = ReadRecords(pipelineResult);
         var output = new List<MlSocialPostScore>();
         foreach (var row in records)
         {
@@ -203,9 +136,9 @@ public class MlScoringService(
         return output;
     }
 
-    private static List<(int SupporterId, decimal UpliftScore)> ParseDonorUpliftScores(JsonDocument doc)
+    private static List<(int SupporterId, decimal UpliftScore)> ParseDonorUpliftScores(JsonElement pipelineResult)
     {
-        var records = ReadRecords(doc);
+        var records = ReadRecords(pipelineResult);
         var output = new List<(int SupporterId, decimal UpliftScore)>();
         foreach (var row in records)
         {
@@ -217,9 +150,9 @@ public class MlScoringService(
         return output;
     }
 
-    private static List<MlResidentReadinessScore> ParseReadinessScores(JsonDocument doc)
+    private static List<MlResidentReadinessScore> ParseReadinessScores(JsonElement pipelineResult)
     {
-        var records = ReadRecords(doc);
+        var records = ReadRecords(pipelineResult);
         var output = new List<MlResidentReadinessScore>();
         foreach (var row in records)
         {
@@ -235,9 +168,9 @@ public class MlScoringService(
         return output;
     }
 
-    private static List<MlDonorImpactPrediction> ParseImpactPredictions(JsonDocument doc)
+    private static List<MlDonorImpactPrediction> ParseImpactPredictions(JsonElement pipelineResult)
     {
-        var records = ReadRecords(doc);
+        var records = ReadRecords(pipelineResult);
         var output = new List<MlDonorImpactPrediction>();
         foreach (var row in records)
         {
@@ -254,9 +187,9 @@ public class MlScoringService(
         return output;
     }
 
-    private static JsonElement.ArrayEnumerator ReadRecords(JsonDocument doc)
+    private static JsonElement.ArrayEnumerator ReadRecords(JsonElement pipelineResult)
     {
-        if (!doc.RootElement.TryGetProperty("records", out var records) || records.ValueKind != JsonValueKind.Array)
+        if (!pipelineResult.TryGetProperty("records", out var records) || records.ValueKind != JsonValueKind.Array)
         {
             throw new InvalidOperationException("Pipeline output schema invalid: expected top-level 'records' array.");
         }

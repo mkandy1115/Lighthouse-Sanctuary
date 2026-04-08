@@ -80,6 +80,7 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod()));
 
 builder.Services.AddScoped<DatabaseBootstrapper>();
+builder.Services.AddHttpClient();
 builder.Services.AddScoped<MlScoringService>();
 
 var app = builder.Build();

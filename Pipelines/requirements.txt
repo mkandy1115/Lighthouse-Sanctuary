@@ -1,0 +1,16 @@
+# Uncomment to enable Azure Monitor OpenTelemetry
+# Ref: aka.ms/functions-azure-monitor-python
+# azure-monitor-opentelemetry
+
+azure-functions
+nbformat
+nbconvert
+ipykernel
+jupyter_client
+papermill
+pandas
+numpy
+scikit-learn
+sqlalchemy
+psycopg[binary]
+python-dotenv
