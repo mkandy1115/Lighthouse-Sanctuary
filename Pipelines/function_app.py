@@ -2,6 +2,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import azure.functions as func
@@ -9,14 +10,6 @@ import azure.functions as func
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
 BASE_DIR = Path(__file__).resolve().parent
-OUTPUT_DIR = BASE_DIR / "output"
-PIPELINE_FOLDERS = [
-    "ML_Pipeline_1",
-    "ML_Pipeline_2",
-    "ML_Pipeline_3",
-    "ML_Pipeline_4",
-    "ML_Pipeline_5",
-]
 
 
 def _subprocess_env() -> dict[str, str]:
@@ -32,14 +25,22 @@ def _subprocess_env() -> dict[str, str]:
     return env
 
 
+def _runtime_output_dir() -> Path:
+    """Azure wwwroot is read-only; write transient JSON under the OS temp directory."""
+    root = os.environ.get("TMPDIR") or os.environ.get("TEMP") or tempfile.gettempdir()
+    d = Path(root) / "ml_pipeline_run"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
 def _run_pipeline(folder_name: str, profile: str, timeout_seconds: int) -> dict:
     pipeline_dir = BASE_DIR / folder_name
     script = pipeline_dir / "run_pipeline.py"
     if not script.exists():
         raise FileNotFoundError(f"Pipeline script not found for {folder_name}: {script}")
 
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    output_file = OUTPUT_DIR / f"{folder_name}.json"
+    out_dir = _runtime_output_dir()
+    output_file = out_dir / f"{folder_name}.json"
     if output_file.exists():
         output_file.unlink()
 
