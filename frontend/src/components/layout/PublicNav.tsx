@@ -40,15 +40,22 @@ export default function PublicNav() {
         {/* Logo */}
         <Link
           to="/"
-          className="flex flex-col leading-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-bronze rounded"
+          className="flex items-center gap-2.5 leading-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-bronze rounded"
           aria-label="Imari: Safe Haven — go to homepage"
         >
-          <span className="font-semibold text-brand-charcoal text-lg tracking-tight">
-            🕊️ Imari
-          </span>
-          <span className="text-[10px] text-brand-muted tracking-widest uppercase font-sans">
-            Safe Haven
-          </span>
+          <img
+            src="/imari-icon.svg"
+            alt="Imari Safe Haven icon"
+            className="h-9 w-9"
+          />
+          <div className="flex flex-col">
+            <span className="font-semibold text-brand-charcoal text-lg tracking-tight leading-tight">
+              Imari
+            </span>
+            <span className="text-[10px] text-brand-muted tracking-widest uppercase font-sans leading-tight">
+              Safe Haven
+            </span>
+          </div>
         </Link>
 
         {/* Desktop center nav */}

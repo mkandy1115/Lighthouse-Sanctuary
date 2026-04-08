@@ -1,0 +1,10 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Triangle roof -->
+  <polygon points="100,12 178,110 22,110" fill="#8B6A14"/>
+  <!-- Cutout triangle (window) -->
+  <polygon points="100,48 148,100 52,100" fill="transparent" opacity="0.9"/>
+  <!-- Walls -->
+  <rect x="36" y="110" width="128" height="72" fill="#1C1410" rx="3"/>
+  <!-- Door -->
+  <rect x="76" y="130" width="48" height="52" fill="#8B6A14" rx="3"/>
+</svg>
