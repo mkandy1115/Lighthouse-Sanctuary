@@ -664,6 +664,9 @@ export default function DonorPortalPage() {
         </nav>
 
         <div className="flex items-center gap-3">
+          <Link to="/donor/profile" className="text-sm text-brand-muted hover:text-brand-charcoal transition-colors">
+            Profile
+          </Link>
           <button type="button" onClick={handleSignOut} className="text-sm text-brand-muted hover:text-brand-charcoal transition-colors">
             Sign out
           </button>

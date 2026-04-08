@@ -1,6 +1,8 @@
 export type CookieConsentMode = 'essential' | 'all'
+export type ThemePreference = 'light' | 'dark'
 
 const COOKIE_CONSENT_KEY = 'imari_cookie_consent'
+const THEME_COOKIE_KEY = 'imari_theme'
 
 export function getCookieConsent(): CookieConsentMode | null {
   const value = localStorage.getItem(COOKIE_CONSENT_KEY)
@@ -17,4 +19,23 @@ export function saveCookieConsent(mode: CookieConsentMode) {
 
 export function openCookiePreferences() {
   window.dispatchEvent(new CustomEvent('imari:open-cookie-preferences'))
+}
+
+export function getThemePreference(): ThemePreference {
+  const fromStorage = localStorage.getItem(THEME_COOKIE_KEY)
+  if (fromStorage === 'light' || fromStorage === 'dark') return fromStorage
+
+  const fromCookie = document.cookie
+    .split(';')
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${THEME_COOKIE_KEY}=`))
+    ?.split('=')[1]
+
+  return fromCookie === 'dark' ? 'dark' : 'light'
+}
+
+export function saveThemePreference(value: ThemePreference) {
+  localStorage.setItem(THEME_COOKIE_KEY, value)
+  const maxAgeDays = 365
+  document.cookie = `${THEME_COOKIE_KEY}=${value}; path=/; max-age=${maxAgeDays * 24 * 60 * 60}; SameSite=Lax`
 }

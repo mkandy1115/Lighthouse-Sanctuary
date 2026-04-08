@@ -213,6 +213,16 @@ export interface MlRefreshResult {
   donorImpactUpdated: number
 }
 
+export interface AdminUserListItem {
+  id: number
+  username: string
+  displayName: string
+  email?: string | null
+  role: 'Admin' | 'Donor' | string
+  isActive: boolean
+  createdAt: string
+}
+
 export function getResidents() {
   return api<StaffResidentListItem[]>('/api/residents')
 }
@@ -424,5 +434,16 @@ export function getMlInsights() {
 export function refreshMlInsights() {
   return api<MlRefreshResult>('/api/admin/ml-insights/refresh', {
     method: 'POST',
+  })
+}
+
+export function getAdminUsers() {
+  return api<AdminUserListItem[]>('/api/admin/users')
+}
+
+export function updateAdminUserRole(id: number, role: 'Admin' | 'Donor') {
+  return api<AdminUserListItem>(`/api/admin/users/${id}/role`, {
+    method: 'PATCH',
+    body: JSON.stringify({ role }),
   })
 }

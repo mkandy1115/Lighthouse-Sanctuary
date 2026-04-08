@@ -1,9 +1,10 @@
-import { createContext, lazy, Suspense } from 'react'
+import { createContext, lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useRole } from '@/hooks/useRole'
 import type { UserRole } from '@/hooks/useRole'
 import CookieConsentBanner from '@/components/shared/CookieConsentBanner'
 import AdminShell from '@/components/layout/AdminShell'
+import { getThemePreference, saveThemePreference, type ThemePreference } from '@/lib/cookies'
 
 // ---------------------------------------------------------------------------
 // Role context — consumed by LoginPage and any component that needs the role
@@ -14,6 +15,14 @@ export const RoleContext = createContext<{
 }>({
   role: 'staff',
   setRole: () => {},
+})
+
+export const ThemeContext = createContext<{
+  theme: ThemePreference
+  setTheme: (next: ThemePreference) => void
+}>({
+  theme: 'light',
+  setTheme: () => {},
 })
 
 // ---------------------------------------------------------------------------
@@ -70,6 +79,7 @@ const AdminUsersPage = lazy(() => import('@/pages/admin/UsersPage'))
 const AdminRolesPage = lazy(() => import('@/pages/admin/RolesPage'))
 const AdminAuditPage = lazy(() => import('@/pages/admin/AuditPage'))
 const AdminSettingsPage = lazy(() => import('@/pages/admin/SettingsPage'))
+const ProfilePage = lazy(() => import('@/pages/shared/ProfilePage'))
 
 // ---------------------------------------------------------------------------
 // Loading fallback
@@ -96,13 +106,25 @@ function StaffRedirect() {
 // ---------------------------------------------------------------------------
 export default function App() {
   const { role, setRole } = useRole()
+  const [theme, setThemeState] = useState<ThemePreference>(() => getThemePreference())
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    saveThemePreference(theme)
+  }, [theme])
+
+  const themeContext = useMemo(() => ({
+    theme,
+    setTheme: setThemeState,
+  }), [theme])
 
   return (
     <RoleContext.Provider value={{ role, setRole }}>
-      <BrowserRouter>
-        <Suspense fallback={<PageLoader />}>
-          <CookieConsentBanner />
-          <Routes>
+      <ThemeContext.Provider value={themeContext}>
+        <BrowserRouter>
+          <Suspense fallback={<PageLoader />}>
+            <CookieConsentBanner />
+            <Routes>
             {/* ── Public ─────────────────────────────────────────────────── */}
             <Route path="/" element={<HomePage />} />
             <Route path="/about" element={<AboutPage />} />
@@ -125,7 +147,7 @@ export default function App() {
             <Route path="/donor/impact" element={<DonorDashboardPage />} />
             <Route path="/donor/campaigns" element={<DonorDashboardPage />} />
             <Route path="/donor/messages" element={<DonorDashboardPage />} />
-            <Route path="/donor/profile" element={<DonorDashboardPage />} />
+            <Route path="/donor/profile" element={<ProfilePage />} />
 
             {/* ── Admin + staff workspace — single unified layout ────────── */}
             <Route path="/admin" element={<AdminShell />}>
@@ -147,15 +169,17 @@ export default function App() {
               <Route path="roles" element={<AdminRolesPage />} />
               <Route path="audit" element={<AdminAuditPage />} />
               <Route path="settings" element={<AdminSettingsPage />} />
+              <Route path="profile" element={<ProfilePage />} />
               <Route path="staff-dashboard" element={<StaffDashboardPage />} />
               <Route path="staff-settings" element={<StaffSettingsPage />} />
             </Route>
 
             {/* ── Legacy staff URLs redirect into admin workspace ────────── */}
             <Route path="/staff/*" element={<StaffRedirect />} />
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </ThemeContext.Provider>
     </RoleContext.Provider>
   )
 }

@@ -102,3 +102,21 @@ export function getAuthorizationHeaders(): Record<string, string> {
       }
     : {}
 }
+
+export async function changePassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
+  const response = await fetch(`${getApiBaseUrl()}/api/auth/change-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthorizationHeaders(),
+    },
+    body: JSON.stringify({ currentPassword, newPassword }),
+  })
+
+  const data = await response.json().catch(() => null)
+  if (!response.ok) {
+    throw new Error(data?.message ?? 'Unable to update password right now.')
+  }
+
+  return data as { message: string }
+}

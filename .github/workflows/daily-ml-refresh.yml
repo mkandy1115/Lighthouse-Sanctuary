@@ -1,0 +1,72 @@
+name: Daily ML Refresh
+
+on:
+  schedule:
+    - cron: "15 2 * * *" # Daily at 02:15 UTC
+  workflow_dispatch:
+
+jobs:
+  refresh-ml:
+    name: Refresh ML Pipelines
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      PROD_API_BASE_URL: ${{ secrets.PROD_API_BASE_URL }}
+      PROD_ADMIN_USERNAME: ${{ secrets.PROD_ADMIN_USERNAME }}
+      PROD_ADMIN_PASSWORD: ${{ secrets.PROD_ADMIN_PASSWORD }}
+
+    steps:
+      - name: Validate required secrets
+        shell: bash
+        run: |
+          test -n "$PROD_API_BASE_URL" || (echo "Missing secret: PROD_API_BASE_URL" && exit 1)
+          test -n "$PROD_ADMIN_USERNAME" || (echo "Missing secret: PROD_ADMIN_USERNAME" && exit 1)
+          test -n "$PROD_ADMIN_PASSWORD" || (echo "Missing secret: PROD_ADMIN_PASSWORD" && exit 1)
+
+      - name: Authenticate as admin
+        id: auth
+        shell: bash
+        run: |
+          set -euo pipefail
+          login_response=$(curl -sS -X POST "${PROD_API_BASE_URL}/api/auth/login" \
+            -H "Content-Type: application/json" \
+            -d "{\"username\":\"${PROD_ADMIN_USERNAME}\",\"password\":\"${PROD_ADMIN_PASSWORD}\"}")
+
+          token=$(python3 - <<'PY' "$login_response"
+          import json, sys
+          payload = json.loads(sys.argv[1])
+          token = payload.get("token")
+          if not token:
+              raise SystemExit("Login failed: token missing")
+          print(token)
+          PY
+          )
+
+          echo "token=${token}" >> "$GITHUB_OUTPUT"
+
+      - name: Trigger ML refresh
+        shell: bash
+        run: |
+          set -euo pipefail
+          refresh_response=$(curl -sS -X POST "${PROD_API_BASE_URL}/api/admin/ml-insights/refresh" \
+            -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
+            -H "Content-Type: application/json")
+          echo "$refresh_response"
+
+      - name: Verify ML insights payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          insights_payload=$(curl -sS "${PROD_API_BASE_URL}/api/admin/ml-insights")
+          python3 - <<'PY' "$insights_payload"
+          import json, sys
+          payload = json.loads(sys.argv[1])
+          print({
+              "lastRefreshedAtUtc": payload.get("lastRefreshedAtUtc"),
+              "donorRisks": len(payload.get("donorRisks", [])),
+              "socialPostScores": len(payload.get("socialPostScores", [])),
+              "residentReadiness": len(payload.get("residentReadiness", [])),
+          })
+          if payload.get("lastRefreshedAtUtc") is None:
+              raise SystemExit("Refresh appears unsuccessful: lastRefreshedAtUtc is null")
+          PY

@@ -13,6 +13,13 @@
   --brand-border: #E5E3DF;
 }
 
+:root[data-theme='dark'] {
+  --brand-cream: #111827;
+  --brand-stone: #1f2937;
+  --brand-charcoal: #f9fafb;
+  --brand-border: #374151;
+}
+
 /* Base typography */
 body {
   font-family: 'Inter', system-ui, sans-serif;
@@ -20,6 +27,35 @@ body {
   background: #FAFAF8;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+:root[data-theme='dark'] body {
+  color: #f3f4f6;
+  background: #111827;
+}
+
+:root[data-theme='dark'] .bg-white {
+  background-color: #1f2937 !important;
+}
+
+:root[data-theme='dark'] .bg-brand-cream {
+  background-color: #111827 !important;
+}
+
+:root[data-theme='dark'] .bg-brand-stone {
+  background-color: #1f2937 !important;
+}
+
+:root[data-theme='dark'] .text-brand-charcoal {
+  color: #f9fafb !important;
+}
+
+:root[data-theme='dark'] .text-brand-muted {
+  color: #d1d5db !important;
+}
+
+:root[data-theme='dark'] .border-brand-border {
+  border-color: #374151 !important;
 }
 
 /* Heading font */
