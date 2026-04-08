@@ -1,5 +1,24 @@
 {
   "ConnectionStrings": {
     "DefaultConnection": "Host=localhost;Port=5432;Database=lighthouse_sanctuary;Username=postgres;Password=your_local_db_password;Include Error Detail=true"
+  },
+  "AuthSeed": {
+    "Enabled": true,
+    "Users": [
+      {
+        "Username": "local-admin",
+        "DisplayName": "Local Admin",
+        "Email": "admin@example.local",
+        "Password": "ReplaceWithStrongLocalPassword!2026",
+        "Role": "Admin"
+      },
+      {
+        "Username": "local-donor",
+        "DisplayName": "Local Donor",
+        "Email": "donor@example.local",
+        "Password": "ReplaceWithStrongLocalPassword!2026",
+        "Role": "Donor"
+      }
+    ]
   }
 }

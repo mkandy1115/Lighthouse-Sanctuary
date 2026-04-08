@@ -1,35 +1,8 @@
 import { useContext, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { RoleContext } from '@/App'
-import type { UserRole } from '@/hooks/useRole'
 import { login, saveAuthSession } from '@/lib/auth'
-import { ArrowRight, LayoutDashboard, ShieldCheck, LoaderCircle } from 'lucide-react'
-
-const demoRoles: {
-  value: UserRole
-  label: string
-  description: string
-  icon: React.ComponentType<{ className?: string }>
-  color: string
-  path: string
-}[] = [
-  {
-    value: 'donor',
-    label: 'Enter as Donor',
-    description: 'View your giving history, impact, and campaigns',
-    icon: LayoutDashboard,
-    color: 'hover:border-brand-bronze hover:bg-brand-bronze-muted',
-    path: '/donor',
-  },
-  {
-    value: 'admin',
-    label: 'Enter Admin Portal',
-    description: 'Operations, participant care, donor oversight, and reporting',
-    icon: ShieldCheck,
-    color: 'hover:border-slate-400 hover:bg-slate-50',
-    path: '/admin',
-  },
-]
+import { LoaderCircle } from 'lucide-react'
 
 export default function LoginPage() {
   const { setRole } = useContext(RoleContext)
@@ -38,11 +11,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-  function enterAs(role: UserRole, path: string) {
-    setRole(role)
-    navigate(path)
-  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -196,57 +164,12 @@ export default function LoginPage() {
                 'Sign In'
               )}
             </button>
-            <div className="rounded-lg border border-brand-border bg-white px-4 py-3 text-xs text-brand-muted">
-              Demo credentials:
-              {' '}
-              <span className="font-semibold text-brand-charcoal">admin / Admin123!</span>
-              {' '}
-              or
-              {' '}
-              <span className="font-semibold text-brand-charcoal">donor / Donor123!</span>
-            </div>
             <p className="text-center text-xs text-brand-muted">
               <a href="mailto:admin@imarighana.org" className="text-brand-bronze hover:underline">
                 Need access? Contact your administrator
               </a>
             </p>
           </form>
-
-          {/* Divider */}
-          <div className="relative mb-8">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-brand-border" />
-            </div>
-            <div className="relative flex justify-center">
-              <span className="bg-brand-cream px-4 text-xs text-brand-muted uppercase tracking-widest font-semibold">
-                Demo Access
-              </span>
-            </div>
-          </div>
-
-          {/* Demo role cards */}
-          <div className="space-y-3">
-            <p className="text-xs text-brand-muted mb-1">
-              Explore the platform — no account required.
-            </p>
-            {demoRoles.map(({ value, label, description, icon: Icon, color, path }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => enterAs(value, path)}
-                className={`w-full text-left flex items-center gap-4 px-4 py-3.5 bg-white border-2 border-brand-border rounded-xl transition-all ${color} group`}
-              >
-                <div className="w-9 h-9 rounded-lg bg-brand-stone flex items-center justify-center shrink-0 group-hover:bg-white/60 transition-colors">
-                  <Icon className="w-4 h-4 text-brand-charcoal" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-brand-charcoal text-sm">{label}</p>
-                  <p className="text-xs text-brand-muted mt-0.5 leading-snug">{description}</p>
-                </div>
-                <ArrowRight className="w-4 h-4 text-brand-muted shrink-0 group-hover:translate-x-1 transition-transform" />
-              </button>
-            ))}
-          </div>
         </div>
       </div>
     </div>

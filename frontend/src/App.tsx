@@ -1,10 +1,12 @@
 import { createContext, lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import type { ReactElement } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useRole } from '@/hooks/useRole'
 import type { UserRole } from '@/hooks/useRole'
 import CookieConsentBanner from '@/components/shared/CookieConsentBanner'
 import AdminShell from '@/components/layout/AdminShell'
 import { getThemePreference, saveThemePreference, type ThemePreference } from '@/lib/cookies'
+import { getStoredAuthUser, getStoredAuthToken } from '@/lib/auth'
 
 // ---------------------------------------------------------------------------
 // Role context — consumed by LoginPage and any component that needs the role
@@ -101,6 +103,29 @@ function StaffRedirect() {
   return <Navigate to={adminPath === '/admin' ? '/admin' : adminPath} replace />
 }
 
+function RequireAuth({ children }: { children: ReactElement }) {
+  const token = getStoredAuthToken()
+  const user = getStoredAuthUser()
+  if (!token || !user) {
+    return <Navigate to="/login" replace />
+  }
+  return children
+}
+
+function RequireRole({
+  role,
+  children,
+}: {
+  role: 'Admin' | 'Donor'
+  children: ReactElement
+}) {
+  const user = getStoredAuthUser()
+  if (!user || user.role !== role) {
+    return <Navigate to="/login" replace />
+  }
+  return children
+}
+
 // ---------------------------------------------------------------------------
 // App root
 // ---------------------------------------------------------------------------
@@ -142,15 +167,15 @@ export default function App() {
             <Route path="/login" element={<LoginPage />} />
 
             {/* ── Donor portal — has its own layout (top bar + sidebar) ──── */}
-            <Route path="/donor" element={<DonorDashboardPage />} />
-            <Route path="/donor/donations" element={<DonorDashboardPage />} />
-            <Route path="/donor/impact" element={<DonorDashboardPage />} />
-            <Route path="/donor/campaigns" element={<DonorDashboardPage />} />
-            <Route path="/donor/messages" element={<DonorDashboardPage />} />
-            <Route path="/donor/profile" element={<ProfilePage />} />
+            <Route path="/donor" element={<RequireAuth><RequireRole role="Donor"><DonorDashboardPage /></RequireRole></RequireAuth>} />
+            <Route path="/donor/donations" element={<RequireAuth><RequireRole role="Donor"><DonorDashboardPage /></RequireRole></RequireAuth>} />
+            <Route path="/donor/impact" element={<RequireAuth><RequireRole role="Donor"><DonorDashboardPage /></RequireRole></RequireAuth>} />
+            <Route path="/donor/campaigns" element={<RequireAuth><RequireRole role="Donor"><DonorDashboardPage /></RequireRole></RequireAuth>} />
+            <Route path="/donor/messages" element={<RequireAuth><RequireRole role="Donor"><DonorDashboardPage /></RequireRole></RequireAuth>} />
+            <Route path="/donor/profile" element={<RequireAuth><RequireRole role="Donor"><ProfilePage /></RequireRole></RequireAuth>} />
 
             {/* ── Admin + staff workspace — single unified layout ────────── */}
-            <Route path="/admin" element={<AdminShell />}>
+            <Route path="/admin" element={<RequireAuth><RequireRole role="Admin"><AdminShell /></RequireRole></RequireAuth>}>
               <Route index element={<AdminDashboardPage />} />
               <Route path="cases" element={<CaseListPage />} />
               <Route path="cases/:id" element={<CaseDetailPage />} />
