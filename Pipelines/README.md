@@ -48,3 +48,19 @@ The backend should call this app through:
 
 - `MlRuntime__FunctionAppUrl=https://<your-function-app>.azurewebsites.net`
 - `MlRuntime__FunctionKey=<function-key>`
+
+## GitHub Actions auto-deploy
+
+Workflow: `.github/workflows/deploy-lh-sanctuary-ml-pipelines.yml`
+
+Runs on every push to `main` that changes files under `Pipelines/` (or the workflow file itself). You can also run it manually: **Actions → Deploy Function App - lh-sanctuary-ml-pipelines → Run workflow**.
+
+### Repository secret to add
+
+In GitHub: **Settings → Secrets and variables → Actions → New repository secret**
+
+| Name | Example value |
+|------|----------------|
+| `AZURE_FUNCTIONAPP_NAME` | `lh-sanctuary-ml-pipelines` |
+
+The workflow reuses the same Azure OIDC secrets as the API deploy (`AZUREAPPSERVICE_CLIENTID_*`, `AZUREAPPSERVICE_TENANTID_*`, `AZUREAPPSERVICE_SUBSCRIPTIONID_*`). If login fails after adding this workflow, add a **federated credential** in Entra ID for the new workflow file path (or use a credential scoped to the whole repo/branch).

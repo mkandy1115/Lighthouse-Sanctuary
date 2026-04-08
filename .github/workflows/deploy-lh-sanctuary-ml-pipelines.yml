@@ -1,0 +1,50 @@
+# Deploys the Python Function App in Pipelines/ to Azure when that folder changes.
+# Requires GitHub repo secrets (see comments below). OIDC must allow this workflow file
+# on the same Azure AD app registration used for backend deploy (or add a federated credential).
+
+name: Deploy Function App - lh-sanctuary-ml-pipelines
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Pipelines/**'
+      - '.github/workflows/deploy-lh-sanctuary-ml-pipelines.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate function_app.py
+        run: python -m py_compile Pipelines/function_app.py
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_31C7C051C20C4A1381276707C5D05E0B }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_5D38AD2B52E343CCA28A5F40683BEEDE }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_4A73066E6DDE4481A0EBF87461F15D0B }}
+
+      # Flex Consumption rejects SCM_DO_BUILD_DURING_DEPLOYMENT / ENABLE_ORYX_BUILD as app settings;
+      # disable Oryx flags here so deploy does not try to set them.
+      - name: Deploy to Azure Functions
+        uses: Azure/functions-action@v1
+        with:
+          app-name: ${{ secrets.AZURE_FUNCTIONAPP_NAME }}
+          package: ${{ github.workspace }}/Pipelines
+          scm-do-build-during-deployment: false
+          enable-oryx-build: false
