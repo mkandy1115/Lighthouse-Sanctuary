@@ -157,7 +157,8 @@ public class AuthController(
                 request.Email);
             return StatusCode(StatusCodes.Status500InternalServerError, new
             {
-                message = "Unable to create donor account right now. marker-2026-04-08"
+                message = "Unable to create donor account right now. marker-2026-04-08",
+                detail = ex.Message
             });
         }
     }
