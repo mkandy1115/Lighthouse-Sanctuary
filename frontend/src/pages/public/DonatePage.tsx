@@ -77,7 +77,7 @@ export default function DonatePage() {
           return
         }
         if (!validateStrongPassword(password)) {
-          setError('Password must be 14+ chars with uppercase, lowercase, number, and symbol.')
+          setError('Password must be at least 8 characters.')
           return
         }
         if ([safeFirstName, safeLastName, safeUsername].some(looksUnsafe)) {

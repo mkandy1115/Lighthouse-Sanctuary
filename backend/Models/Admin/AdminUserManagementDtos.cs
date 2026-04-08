@@ -19,3 +19,9 @@ public class UpdateUserRoleRequest
     [StringLength(16)]
     public string Role { get; set; } = string.Empty;
 }
+
+public class SetUserActiveRequest
+{
+    [Required]
+    public bool IsActive { get; set; }
+}

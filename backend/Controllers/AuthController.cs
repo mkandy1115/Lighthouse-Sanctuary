@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Text.RegularExpressions;
 
 namespace Lighthouse.Sanctuary.Api.Controllers;
 
@@ -18,10 +17,7 @@ public class AuthController(
     IPasswordHasher<AppUser> passwordHasher,
     JwtTokenService jwtTokenService) : ControllerBase
 {
-    private static readonly Regex LowercaseRegex = new("[a-z]", RegexOptions.Compiled);
-    private static readonly Regex UppercaseRegex = new("[A-Z]", RegexOptions.Compiled);
-    private static readonly Regex DigitRegex = new("[0-9]", RegexOptions.Compiled);
-    private static readonly Regex NonAlphaNumericRegex = new("[^a-zA-Z0-9]", RegexOptions.Compiled);
+    private const int MinimumPasswordLength = 8;
 
     private static string? ValidatePasswordPolicy(string password, string? username = null)
     {
@@ -30,23 +26,9 @@ public class AuthController(
             return "Password is required.";
         }
 
-        if (password.Length < 14)
+        if (password.Length < MinimumPasswordLength)
         {
-            return "Password must be at least 14 characters.";
-        }
-
-        if (!LowercaseRegex.IsMatch(password)
-            || !UppercaseRegex.IsMatch(password)
-            || !DigitRegex.IsMatch(password)
-            || !NonAlphaNumericRegex.IsMatch(password))
-        {
-            return "Password must include uppercase, lowercase, number, and special character.";
-        }
-
-        if (!string.IsNullOrWhiteSpace(username)
-            && password.Contains(username, StringComparison.OrdinalIgnoreCase))
-        {
-            return "Password must not contain your username.";
+            return $"Password must be at least {MinimumPasswordLength} characters.";
         }
 
         return null;

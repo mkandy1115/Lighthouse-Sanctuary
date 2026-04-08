@@ -97,4 +97,66 @@ public class HomeVisitationsController(LighthouseContext context) : ControllerBa
         await context.SaveChangesAsync();
         return Ok(visit);
     }
+
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> UpdateHomeVisitation(int id, [FromBody] CreateHomeVisitationRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        var visit = await context.HomeVisitations.FirstOrDefaultAsync(v => v.VisitationId == id);
+        if (visit is null)
+        {
+            return NotFound(new { message = "Home visitation not found." });
+        }
+
+        request.SocialWorker = InputSanitizer.NormalizePlainText(request.SocialWorker, 120);
+        request.VisitType = InputSanitizer.NormalizePlainText(request.VisitType, 64);
+        request.LocationVisited = InputSanitizer.NormalizePlainText(request.LocationVisited, 240);
+        request.FamilyMembersPresent = InputSanitizer.NormalizePlainText(request.FamilyMembersPresent, 240);
+        request.Purpose = InputSanitizer.NormalizePlainText(request.Purpose, 500);
+        request.Observations = InputSanitizer.NormalizePlainText(request.Observations, 4000, allowNewLines: true);
+        request.FamilyCooperationLevel = InputSanitizer.NormalizePlainText(request.FamilyCooperationLevel, 40);
+        request.FollowUpNotes = InputSanitizer.NormalizePlainText(request.FollowUpNotes, 2000, allowNewLines: true);
+        request.VisitOutcome = InputSanitizer.NormalizePlainText(request.VisitOutcome, 40);
+
+        var residentExists = await context.Residents.AnyAsync(r => r.ResidentId == request.ResidentId);
+        if (!residentExists)
+        {
+            return BadRequest(new { message = "Resident not found." });
+        }
+
+        visit.ResidentId = request.ResidentId;
+        visit.VisitDate = request.VisitDate;
+        visit.SocialWorker = request.SocialWorker;
+        visit.VisitType = request.VisitType;
+        visit.LocationVisited = request.LocationVisited;
+        visit.FamilyMembersPresent = request.FamilyMembersPresent;
+        visit.Purpose = request.Purpose;
+        visit.Observations = request.Observations;
+        visit.FamilyCooperationLevel = request.FamilyCooperationLevel;
+        visit.SafetyConcernsNoted = request.SafetyConcernsNoted;
+        visit.FollowUpNeeded = request.FollowUpNeeded;
+        visit.FollowUpNotes = request.FollowUpNotes;
+        visit.VisitOutcome = request.VisitOutcome;
+
+        await context.SaveChangesAsync();
+        return Ok(visit);
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> DeleteHomeVisitation(int id)
+    {
+        var visit = await context.HomeVisitations.FirstOrDefaultAsync(v => v.VisitationId == id);
+        if (visit is null)
+        {
+            return NotFound(new { message = "Home visitation not found." });
+        }
+
+        context.HomeVisitations.Remove(visit);
+        await context.SaveChangesAsync();
+        return NoContent();
+    }
 }

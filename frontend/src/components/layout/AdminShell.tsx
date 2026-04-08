@@ -11,6 +11,7 @@ import {
   LogOut,
   Settings,
   ShieldCheck,
+  User,
   Users,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
@@ -53,43 +54,50 @@ export default function AdminShell() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-brand-border bg-white px-4 sm:px-6">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="text-lg">🕊️</span>
+      <header className="sticky top-0 z-20 flex min-h-14 flex-wrap items-center justify-between gap-2 border-b border-brand-border bg-white px-3 py-2 sm:px-6 sm:py-0 sm:h-14">
+        <Link to="/" className="flex items-center gap-2 shrink-0">
+          <img src="/imari-icon.svg" alt="" className="h-8 w-8 shrink-0" />
           <div className="flex flex-col leading-none">
             <span className="text-sm font-semibold tracking-tight text-brand-charcoal">Imari</span>
             <span className="mt-0.5 text-[9px] uppercase tracking-widest text-brand-muted">Safe Haven</span>
           </div>
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
-          {(['Home', 'About', 'Learn More'] as const).map((label) => (
-            <Link
-              key={label}
-              to={label === 'Home' ? '/' : '#'}
-              className="px-4 py-1.5 text-sm text-brand-charcoal transition-colors hover:text-brand-bronze"
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="flex items-center gap-3">
+        <nav className="flex flex-wrap items-center justify-end gap-1 sm:gap-2">
+          <Link
+            to="/"
+            className="inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-medium text-brand-charcoal border border-brand-border hover:bg-brand-stone sm:text-sm"
+          >
+            Public site
+          </Link>
+          <Link
+            to="/about"
+            className="hidden sm:inline-flex items-center rounded-lg px-3 py-1.5 text-sm text-brand-charcoal hover:text-brand-bronze"
+          >
+            About
+          </Link>
+          <Link
+            to="/admin/profile"
+            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-brand-charcoal border border-brand-border hover:bg-brand-stone sm:text-sm"
+          >
+            <User className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            Profile
+          </Link>
           <button
             type="button"
             onClick={handleSignOut}
-            className="text-sm text-brand-muted transition-colors hover:text-brand-charcoal"
+            className="rounded-lg px-3 py-1.5 text-xs font-medium text-brand-muted transition-colors hover:bg-brand-stone hover:text-brand-charcoal sm:text-sm"
           >
             Sign out
           </button>
           <div
-            className="flex h-8 w-8 cursor-pointer select-none items-center justify-center rounded-full text-sm font-semibold text-white"
+            className="flex h-8 w-8 shrink-0 cursor-default select-none items-center justify-center rounded-full text-sm font-semibold text-white"
             style={{ background: 'linear-gradient(135deg, #2D8A8A, #4AADAD)' }}
             title={displayName}
           >
             {initialsFromName(displayName)}
           </div>
-        </div>
+        </nav>
       </header>
 
       <div className="flex flex-1 overflow-hidden">

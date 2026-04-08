@@ -133,4 +133,64 @@ public class ProcessRecordingsController(LighthouseContext context) : Controller
         await context.SaveChangesAsync();
         return Ok(recording);
     }
+
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> UpdateProcessRecording(int id, [FromBody] CreateProcessRecordingRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        var record = await context.ProcessRecordings.FirstOrDefaultAsync(r => r.RecordingId == id);
+        if (record is null)
+        {
+            return NotFound(new { message = "Process recording not found." });
+        }
+
+        request.SocialWorker = InputSanitizer.NormalizePlainText(request.SocialWorker, 120);
+        request.SessionType = InputSanitizer.NormalizePlainText(request.SessionType, 24);
+        request.EmotionalStateObserved = InputSanitizer.NormalizePlainText(request.EmotionalStateObserved, 32);
+        request.EmotionalStateEnd = InputSanitizer.NormalizePlainText(request.EmotionalStateEnd, 32);
+        request.SessionNarrative = InputSanitizer.NormalizePlainText(request.SessionNarrative, 4000, allowNewLines: true);
+        request.InterventionsApplied = InputSanitizer.NormalizePlainText(request.InterventionsApplied, 2000, allowNewLines: true);
+        request.FollowUpActions = InputSanitizer.NormalizePlainText(request.FollowUpActions, 2000, allowNewLines: true);
+
+        var residentExists = await context.Residents.AnyAsync(r => r.ResidentId == request.ResidentId);
+        if (!residentExists)
+        {
+            return BadRequest(new { message = "Resident not found." });
+        }
+
+        record.ResidentId = request.ResidentId;
+        record.SessionDate = request.SessionDate;
+        record.SocialWorker = request.SocialWorker;
+        record.SessionType = request.SessionType;
+        record.SessionDurationMinutes = request.SessionDurationMinutes;
+        record.EmotionalStateObserved = request.EmotionalStateObserved;
+        record.EmotionalStateEnd = request.EmotionalStateEnd;
+        record.SessionNarrative = request.SessionNarrative;
+        record.InterventionsApplied = request.InterventionsApplied;
+        record.FollowUpActions = request.FollowUpActions;
+        record.ProgressNoted = request.ProgressNoted;
+        record.ConcernsFlagged = request.ConcernsFlagged;
+        record.ReferralMade = request.ReferralMade;
+
+        await context.SaveChangesAsync();
+        return Ok(record);
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> DeleteProcessRecording(int id)
+    {
+        var record = await context.ProcessRecordings.FirstOrDefaultAsync(r => r.RecordingId == id);
+        if (record is null)
+        {
+            return NotFound(new { message = "Process recording not found." });
+        }
+
+        context.ProcessRecordings.Remove(record);
+        await context.SaveChangesAsync();
+        return NoContent();
+    }
 }

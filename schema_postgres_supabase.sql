@@ -323,6 +323,13 @@ create table if not exists ml_donor_churn_scores (
     scored_at_utc timestamp not null
 );
 
+create table if not exists ml_donor_uplift_scores (
+    supporter_id integer primary key references supporters(supporter_id) on delete cascade,
+    uplift_score numeric(6,5) not null check (uplift_score >= 0 and uplift_score <= 1),
+    model_version text not null,
+    scored_at_utc timestamp not null
+);
+
 create table if not exists ml_social_post_scores (
     post_id integer primary key references social_media_posts(post_id) on delete cascade,
     churn_score numeric(6,5) not null check (churn_score >= 0 and churn_score <= 1),

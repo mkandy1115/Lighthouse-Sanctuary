@@ -346,21 +346,21 @@ export default function CaseListPage() {
               value={form.caseControlNo}
               onChange={(e) => setForm((f) => ({ ...f, caseControlNo: e.target.value }))}
               placeholder="Case control #"
-              className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+              className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
             />
             <input
               required
               value={form.internalCode}
               onChange={(e) => setForm((f) => ({ ...f, internalCode: e.target.value }))}
               placeholder="Internal code"
-              className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+              className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <select
               value={form.safehouseId}
               onChange={(e) => setForm((f) => ({ ...f, safehouseId: e.target.value }))}
-              className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+              className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
             >
               {safehouseSelectOptions.map((sh) => (
                 <option key={sh.safehouseId} value={sh.safehouseId}>
@@ -371,7 +371,7 @@ export default function CaseListPage() {
             <select
               value={form.sex}
               onChange={(e) => setForm((f) => ({ ...f, sex: e.target.value }))}
-              className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+              className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
             >
               <option value="F">Female</option>
               <option value="M">Male</option>
@@ -381,7 +381,7 @@ export default function CaseListPage() {
             <select
               value={form.caseStatus}
               onChange={(e) => setForm((f) => ({ ...f, caseStatus: e.target.value }))}
-              className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+              className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
             >
               {CASE_STATUSES.map((s) => (
                 <option key={s} value={s}>
@@ -392,7 +392,7 @@ export default function CaseListPage() {
             <select
               value={form.caseCategory}
               onChange={(e) => setForm((f) => ({ ...f, caseCategory: e.target.value }))}
-              className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+              className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
             >
               {CASE_CATEGORIES.map((c) => (
                 <option key={c} value={c}>
@@ -409,7 +409,7 @@ export default function CaseListPage() {
                 required
                 value={form.dateOfBirth}
                 onChange={(e) => setForm((f) => ({ ...f, dateOfBirth: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-brand-border px-4 py-3 text-sm"
+                className="mt-1 w-full rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
               />
             </label>
             <label className="text-xs text-brand-muted">
@@ -419,14 +419,14 @@ export default function CaseListPage() {
                 required
                 value={form.dateOfAdmission}
                 onChange={(e) => setForm((f) => ({ ...f, dateOfAdmission: e.target.value }))}
-                className="mt-1 w-full rounded-lg border border-brand-border px-4 py-3 text-sm"
+                className="mt-1 w-full rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
               />
             </label>
           </div>
           <select
             value={form.referralSource}
             onChange={(e) => setForm((f) => ({ ...f, referralSource: e.target.value }))}
-            className="w-full rounded-lg border border-brand-border px-4 py-3 text-sm"
+            className="w-full rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
           >
             {REFERRAL_SOURCES.map((r) => (
               <option key={r} value={r}>
@@ -437,7 +437,7 @@ export default function CaseListPage() {
           <select
             value={form.currentRiskLevel}
             onChange={(e) => setForm((f) => ({ ...f, currentRiskLevel: e.target.value }))}
-            className="w-full rounded-lg border border-brand-border px-4 py-3 text-sm"
+            className="w-full rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
           >
             {RISK_LEVELS.map((r) => (
               <option key={r} value={r}>
@@ -449,14 +449,14 @@ export default function CaseListPage() {
             value={form.assignedSocialWorker}
             onChange={(e) => setForm((f) => ({ ...f, assignedSocialWorker: e.target.value }))}
             placeholder="Assigned social worker"
-            className="w-full rounded-lg border border-brand-border px-4 py-3 text-sm"
+            className="w-full rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
           />
           <textarea
             value={form.initialCaseAssessment}
             onChange={(e) => setForm((f) => ({ ...f, initialCaseAssessment: e.target.value }))}
             placeholder="Initial case assessment (optional)"
             rows={2}
-            className="w-full rounded-lg border border-brand-border px-4 py-3 text-sm"
+            className="w-full rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
           />
           <div className="grid grid-cols-2 gap-2 rounded-lg border border-brand-border p-3 text-xs text-brand-charcoal">
             <label className="inline-flex items-center gap-2"><input type="checkbox" checked={form.subCatTrafficked} onChange={(e) => setForm((f) => ({ ...f, subCatTrafficked: e.target.checked }))} />Trafficked</label>
@@ -471,8 +471,8 @@ export default function CaseListPage() {
             <label className="inline-flex items-center gap-2"><input type="checkbox" checked={form.familyInformalSettler} onChange={(e) => setForm((f) => ({ ...f, familyInformalSettler: e.target.checked }))} />Informal settler</label>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <input value={form.pwdType} onChange={(e) => setForm((f) => ({ ...f, pwdType: e.target.value }))} placeholder="PWD type" className="rounded-lg border border-brand-border px-4 py-3 text-sm" />
-            <input value={form.specialNeedsDiagnosis} onChange={(e) => setForm((f) => ({ ...f, specialNeedsDiagnosis: e.target.value }))} placeholder="Special needs diagnosis" className="rounded-lg border border-brand-border px-4 py-3 text-sm" />
+            <input value={form.pwdType} onChange={(e) => setForm((f) => ({ ...f, pwdType: e.target.value }))} placeholder="PWD type" className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal" />
+            <input value={form.specialNeedsDiagnosis} onChange={(e) => setForm((f) => ({ ...f, specialNeedsDiagnosis: e.target.value }))} placeholder="Special needs diagnosis" className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal" />
           </div>
           <button
             type="submit"
@@ -495,21 +495,21 @@ export default function CaseListPage() {
                 value={editForm.caseControlNo}
                 onChange={(e) => setEditForm((f) => ({ ...f, caseControlNo: e.target.value }))}
                 placeholder="Case control #"
-                className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+                className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
               />
               <input
                 required
                 value={editForm.internalCode}
                 onChange={(e) => setEditForm((f) => ({ ...f, internalCode: e.target.value }))}
                 placeholder="Internal code"
-                className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+                className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <select
                 value={editForm.safehouseId}
                 onChange={(e) => setEditForm((f) => ({ ...f, safehouseId: e.target.value }))}
-                className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+                className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
               >
                 {safehouseSelectOptions.map((sh) => (
                   <option key={sh.safehouseId} value={sh.safehouseId}>
@@ -520,7 +520,7 @@ export default function CaseListPage() {
               <select
                 value={editForm.sex}
                 onChange={(e) => setEditForm((f) => ({ ...f, sex: e.target.value }))}
-                className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+                className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
               >
                 <option value="F">Female</option>
                 <option value="M">Male</option>
@@ -530,7 +530,7 @@ export default function CaseListPage() {
               <select
                 value={editForm.caseStatus}
                 onChange={(e) => setEditForm((f) => ({ ...f, caseStatus: e.target.value }))}
-                className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+                className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
               >
                 {CASE_STATUSES.map((s) => (
                   <option key={s} value={s}>
@@ -541,7 +541,7 @@ export default function CaseListPage() {
               <select
                 value={editForm.caseCategory}
                 onChange={(e) => setEditForm((f) => ({ ...f, caseCategory: e.target.value }))}
-                className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+                className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
               >
                 <option value="">— Category —</option>
                 {editForm.caseCategory
@@ -563,7 +563,7 @@ export default function CaseListPage() {
                   required
                   value={editForm.dateOfBirth}
                   onChange={(e) => setEditForm((f) => ({ ...f, dateOfBirth: e.target.value }))}
-                  className="mt-1 w-full rounded-lg border border-brand-border px-4 py-3 text-sm"
+                  className="mt-1 w-full rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
                 />
               </label>
               <label className="text-xs text-brand-muted">
@@ -573,7 +573,7 @@ export default function CaseListPage() {
                   required
                   value={editForm.dateOfAdmission}
                   onChange={(e) => setEditForm((f) => ({ ...f, dateOfAdmission: e.target.value }))}
-                  className="mt-1 w-full rounded-lg border border-brand-border px-4 py-3 text-sm"
+                  className="mt-1 w-full rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
                 />
               </label>
             </div>
@@ -581,13 +581,13 @@ export default function CaseListPage() {
               value={editForm.referralSource}
               onChange={(e) => setEditForm((f) => ({ ...f, referralSource: e.target.value }))}
               placeholder="Referral source"
-              className="w-full rounded-lg border border-brand-border px-4 py-3 text-sm"
+              className="w-full rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
             />
             <div className="grid grid-cols-2 gap-3">
               <select
                 value={editForm.currentRiskLevel}
                 onChange={(e) => setEditForm((f) => ({ ...f, currentRiskLevel: e.target.value }))}
-                className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+                className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
               >
                 <option value="">— Current risk —</option>
                 {RISK_LEVELS.map((r) => (
@@ -599,7 +599,7 @@ export default function CaseListPage() {
               <select
                 value={editForm.initialRiskLevel}
                 onChange={(e) => setEditForm((f) => ({ ...f, initialRiskLevel: e.target.value }))}
-                className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+                className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
               >
                 <option value="">— Initial risk —</option>
                 {RISK_LEVELS.map((r) => (
@@ -613,33 +613,33 @@ export default function CaseListPage() {
               value={editForm.assignedSocialWorker}
               onChange={(e) => setEditForm((f) => ({ ...f, assignedSocialWorker: e.target.value }))}
               placeholder="Assigned social worker"
-              className="w-full rounded-lg border border-brand-border px-4 py-3 text-sm"
+              className="w-full rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
             />
             <textarea
               value={editForm.initialCaseAssessment}
               onChange={(e) => setEditForm((f) => ({ ...f, initialCaseAssessment: e.target.value }))}
               placeholder="Initial case assessment"
               rows={2}
-              className="w-full rounded-lg border border-brand-border px-4 py-3 text-sm"
+              className="w-full rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
             />
             <input
               value={editForm.reintegrationType}
               onChange={(e) => setEditForm((f) => ({ ...f, reintegrationType: e.target.value }))}
               placeholder="Reintegration type"
-              className="w-full rounded-lg border border-brand-border px-4 py-3 text-sm"
+              className="w-full rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
             />
             <input
               value={editForm.reintegrationStatus}
               onChange={(e) => setEditForm((f) => ({ ...f, reintegrationStatus: e.target.value }))}
               placeholder="Reintegration status"
-              className="w-full rounded-lg border border-brand-border px-4 py-3 text-sm"
+              className="w-full rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
             />
             <textarea
               value={editForm.notesRestricted}
               onChange={(e) => setEditForm((f) => ({ ...f, notesRestricted: e.target.value }))}
               placeholder="Restricted notes"
               rows={2}
-              className="w-full rounded-lg border border-brand-border px-4 py-3 text-sm"
+              className="w-full rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
             />
             <div className="grid grid-cols-2 gap-2 rounded-lg border border-brand-border p-3 text-xs text-brand-charcoal">
               <label className="inline-flex items-center gap-2"><input type="checkbox" checked={editForm.subCatTrafficked} onChange={(e) => setEditForm((f) => ({ ...f, subCatTrafficked: e.target.checked }))} />Trafficked</label>
@@ -654,8 +654,8 @@ export default function CaseListPage() {
               <label className="inline-flex items-center gap-2"><input type="checkbox" checked={editForm.familyInformalSettler} onChange={(e) => setEditForm((f) => ({ ...f, familyInformalSettler: e.target.checked }))} />Informal settler</label>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <input value={editForm.pwdType} onChange={(e) => setEditForm((f) => ({ ...f, pwdType: e.target.value }))} placeholder="PWD type" className="rounded-lg border border-brand-border px-4 py-3 text-sm" />
-              <input value={editForm.specialNeedsDiagnosis} onChange={(e) => setEditForm((f) => ({ ...f, specialNeedsDiagnosis: e.target.value }))} placeholder="Special needs diagnosis" className="rounded-lg border border-brand-border px-4 py-3 text-sm" />
+              <input value={editForm.pwdType} onChange={(e) => setEditForm((f) => ({ ...f, pwdType: e.target.value }))} placeholder="PWD type" className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal" />
+              <input value={editForm.specialNeedsDiagnosis} onChange={(e) => setEditForm((f) => ({ ...f, specialNeedsDiagnosis: e.target.value }))} placeholder="Special needs diagnosis" className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal" />
             </div>
             <button
               type="submit"
@@ -689,12 +689,12 @@ export default function CaseListPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search case number or worker…"
-          className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+          className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
         />
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+          className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
         >
           <option value="all">All statuses</option>
           {Array.from(new Set(residents.map((resident) => resident.caseStatus))).map((status) => (
@@ -706,7 +706,7 @@ export default function CaseListPage() {
         <select
           value={safehouseFilter}
           onChange={(e) => setSafehouseFilter(e.target.value)}
-          className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+          className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
         >
           <option value="all">All safehouses</option>
           {safehouseNames.map((name) => (
@@ -718,7 +718,7 @@ export default function CaseListPage() {
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+          className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
         >
           <option value="all">All categories</option>
           {categories.map((category) => (

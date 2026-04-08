@@ -158,6 +158,15 @@ CREATE TABLE IF NOT EXISTS public.ml_donor_churn_scores
     CONSTRAINT ml_donor_churn_scores_pkey PRIMARY KEY (supporter_id)
 );
 
+CREATE TABLE IF NOT EXISTS public.ml_donor_uplift_scores
+(
+    supporter_id integer NOT NULL,
+    uplift_score numeric(5, 4) NOT NULL,
+    model_version text COLLATE pg_catalog."default" NOT NULL DEFAULT 'pipeline4-v1'::text,
+    scored_at_utc timestamp with time zone NOT NULL DEFAULT now(),
+    CONSTRAINT ml_donor_uplift_scores_pkey PRIMARY KEY (supporter_id)
+);
+
 CREATE TABLE IF NOT EXISTS public.ml_donor_impact_predictions
 (
     supporter_id integer NOT NULL,
@@ -505,6 +514,15 @@ ALTER TABLE IF EXISTS public.ml_donor_churn_scores
     ON DELETE CASCADE;
 CREATE INDEX IF NOT EXISTS ml_donor_churn_scores_pkey
     ON public.ml_donor_churn_scores(supporter_id);
+
+
+ALTER TABLE IF EXISTS public.ml_donor_uplift_scores
+    ADD CONSTRAINT ml_donor_uplift_scores_supporter_id_fkey FOREIGN KEY (supporter_id)
+    REFERENCES public.supporters (supporter_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS ml_donor_uplift_scores_pkey
+    ON public.ml_donor_uplift_scores(supporter_id);
 
 
 ALTER TABLE IF EXISTS public.ml_donor_impact_predictions

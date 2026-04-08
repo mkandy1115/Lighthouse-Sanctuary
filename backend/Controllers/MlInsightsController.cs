@@ -15,20 +15,35 @@ public class MlInsightsController(LighthouseContext context, MlScoringService sc
     [HttpGet]
     public async Task<IActionResult> Get()
     {
-        var donorRisks = await (
-            from score in context.MlDonorChurnScores.AsNoTracking()
-            join supporter in context.Supporters.AsNoTracking() on score.SupporterId equals supporter.SupporterId
-            orderby score.ChurnScore descending
-            select new MlDonorRiskItemDto
+        var churnById = await context.MlDonorChurnScores.AsNoTracking().ToDictionaryAsync(c => c.SupporterId);
+        var upliftById = await context.MlDonorUpliftScores.AsNoTracking().ToDictionaryAsync(u => u.SupporterId);
+        var supporterIds = churnById.Keys.Union(upliftById.Keys).Distinct().ToList();
+
+        var names = await context.Supporters
+            .AsNoTracking()
+            .Where(s => supporterIds.Contains(s.SupporterId))
+            .ToDictionaryAsync(s => s.SupporterId, s => s.DisplayName);
+
+        var donorPipeline = supporterIds
+            .Select(id =>
             {
-                SupporterId = score.SupporterId,
-                DonorName = supporter.DisplayName,
-                ChurnScore = score.ChurnScore,
-                ChurnTier = score.ChurnTier,
-                ModelVersion = score.ModelVersion,
-                ScoredAtUtc = score.ScoredAtUtc.ToString("O")
-            }
-        ).ToListAsync();
+                churnById.TryGetValue(id, out var churn);
+                upliftById.TryGetValue(id, out var uplift);
+                return new MlDonorPipelineItemDto
+                {
+                    SupporterId = id,
+                    DonorName = names.GetValueOrDefault(id) ?? $"Supporter {id}",
+                    ChurnScore = churn?.ChurnScore,
+                    ChurnTier = churn?.ChurnTier,
+                    ChurnModelVersion = churn?.ModelVersion,
+                    ChurnScoredAtUtc = churn != null ? churn.ScoredAtUtc.ToString("O") : null,
+                    DonorUpliftScore = uplift?.UpliftScore,
+                    UpliftModelVersion = uplift?.ModelVersion,
+                    UpliftScoredAtUtc = uplift != null ? uplift.ScoredAtUtc.ToString("O") : null,
+                };
+            })
+            .OrderByDescending(row => row.ChurnScore ?? 0m)
+            .ToList();
 
         var socialScores = await (
             from score in context.MlSocialPostScores.AsNoTracking()
@@ -63,7 +78,12 @@ public class MlInsightsController(LighthouseContext context, MlScoringService sc
             }
         ).ToListAsync();
 
-        var latest = donorRisks.Select(r => DateTime.TryParse(r.ScoredAtUtc, out var dt) ? dt : DateTime.MinValue)
+        var latest = donorPipeline
+            .SelectMany(row => new[]
+            {
+                DateTime.TryParse(row.ChurnScoredAtUtc, out var c) ? c : DateTime.MinValue,
+                DateTime.TryParse(row.UpliftScoredAtUtc, out var u) ? u : DateTime.MinValue,
+            })
             .Concat(socialScores.Select(r => DateTime.TryParse(r.ScoredAtUtc, out var dt) ? dt : DateTime.MinValue))
             .Concat(readiness.Select(r => DateTime.TryParse(r.ScoredAtUtc, out var dt) ? dt : DateTime.MinValue))
             .DefaultIfEmpty(DateTime.MinValue)
@@ -72,7 +92,7 @@ public class MlInsightsController(LighthouseContext context, MlScoringService sc
         return Ok(new MlInsightsResponse
         {
             LastRefreshedAtUtc = latest == DateTime.MinValue ? null : latest.ToString("O"),
-            DonorRisks = donorRisks,
+            DonorPipeline = donorPipeline,
             SocialPostScores = socialScores,
             ResidentReadiness = readiness
         });

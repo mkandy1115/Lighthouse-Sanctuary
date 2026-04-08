@@ -97,4 +97,48 @@ public class AdminUsersController(LighthouseContext context) : ControllerBase
             CreatedAt = user.CreatedAt
         });
     }
+
+    [HttpPatch("{id:int}/active")]
+    public async Task<IActionResult> SetActive(int id, [FromBody] SetUserActiveRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        var user = await context.AppUsers.FirstOrDefaultAsync(u => u.AppUserId == id);
+        if (user is null)
+        {
+            return NotFound(new { message = "User not found." });
+        }
+
+        if (!request.IsActive
+            && user.IsActive
+            && user.Role.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+        {
+            var otherActiveAdmins = await context.AppUsers.CountAsync(u =>
+                u.IsActive
+                && u.Role == "Admin"
+                && u.AppUserId != id);
+
+            if (otherActiveAdmins == 0)
+            {
+                return BadRequest(new { message = "Cannot deactivate the last active admin account." });
+            }
+        }
+
+        user.IsActive = request.IsActive;
+        await context.SaveChangesAsync();
+
+        return Ok(new AdminUserListItemDto
+        {
+            Id = user.AppUserId,
+            Username = user.Username,
+            DisplayName = user.DisplayName,
+            Email = user.Email,
+            Role = user.Role,
+            IsActive = user.IsActive,
+            CreatedAt = user.CreatedAt
+        });
+    }
 }

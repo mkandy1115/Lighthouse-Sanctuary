@@ -38,7 +38,8 @@ function numberFromRecord(record: Record<string, unknown>, key: string): number 
 
 export default function AdminDashboardPage() {
   const [data, setData] = useState<AdminDashboardData | null>(null)
-  const [error, setError] = useState('')
+  const [loadError, setLoadError] = useState('')
+  const [mlError, setMlError] = useState('')
   const [refreshingMl, setRefreshingMl] = useState(false)
 
   useEffect(() => {
@@ -50,8 +51,9 @@ export default function AdminDashboardPage() {
           getMlInsights(),
         ])
         setData({ dashboard, reports, ml })
+        setLoadError('')
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unable to load admin dashboard.')
+        setLoadError(err instanceof Error ? err.message : 'Unable to load admin dashboard.')
       }
     }
 
@@ -202,16 +204,16 @@ export default function AdminDashboardPage() {
         getMlInsights(),
       ])
       setData({ dashboard, reports, ml })
-      setError('')
+      setMlError('')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to refresh ML insights.')
+      setMlError(err instanceof Error ? err.message : 'Unable to refresh ML insights.')
     } finally {
       setRefreshingMl(false)
     }
   }
 
-  if (error) {
-    return <div className="py-16 text-center text-rose-700">{error}</div>
+  if (loadError) {
+    return <div className="py-16 text-center text-rose-700">{loadError}</div>
   }
 
   if (!data || !derived) {
@@ -220,6 +222,12 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-8 animate-fade-in">
+      {mlError ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <span className="font-semibold">ML refresh did not complete.</span>{' '}
+          {mlError} Charts above still show the last loaded data.
+        </div>
+      ) : null}
       <div className="mb-8">
         <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-brand-teal">Organization Overview</p>
         <h1 className="font-serif text-3xl text-brand-charcoal">Welcome back.</h1>
@@ -430,32 +438,42 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="space-y-6">
         <div className="rounded-xl border border-brand-border bg-white p-6">
-          <h3 className="font-semibold text-brand-charcoal">Pipeline 1 · Donor Churn Risk</h3>
+          <h3 className="font-semibold text-brand-charcoal">Pipelines 1 &amp; 4 · Donor churn risk and uplift</h3>
           <p className="mt-1 text-xs text-brand-muted">
-            Likelihood that a donor will not give again within one year. Higher scores indicate higher churn risk.
+            Pipeline 1: likelihood a donor will not give again within a year. Pipeline 4: donor-level uplift signal
+            (also blended into post-level scores downstream).
           </p>
           <div className="mt-4 max-h-80 overflow-auto">
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-brand-border text-left text-brand-muted">
                   <th className="pb-2">Donor</th>
-                  <th className="pb-2">Risk</th>
+                  <th className="pb-2">Churn (P1)</th>
                   <th className="pb-2">Tier</th>
+                  <th className="pb-2">Uplift (P4)</th>
                 </tr>
               </thead>
               <tbody>
-                {derived.ml.donorRisks.map((row) => (
+                {derived.ml.donorPipeline.map((row) => (
                   <tr key={row.supporterId} className="border-b border-brand-border/70">
                     <td className="py-2 pr-2 text-brand-charcoal">{row.donorName}</td>
-                    <td className="py-2 pr-2 text-brand-charcoal">{formatPercent(row.churnScore * 100, 1)}</td>
-                    <td className="py-2 text-brand-muted">{row.churnTier}</td>
+                    <td className="py-2 pr-2 text-brand-charcoal">
+                      {row.churnScore != null ? formatPercent(row.churnScore * 100, 1) : '—'}
+                    </td>
+                    <td className="py-2 text-brand-muted">{row.churnTier ?? '—'}</td>
+                    <td className="py-2 text-brand-charcoal">
+                      {row.donorUpliftScore != null ? formatPercent(row.donorUpliftScore * 100, 1) : '—'}
+                    </td>
                   </tr>
                 ))}
-                {derived.ml.donorRisks.length === 0 && (
+                {derived.ml.donorPipeline.length === 0 && (
                   <tr>
-                    <td className="py-3 text-brand-muted" colSpan={3}>No churn scores yet. Click Refresh ML Scores.</td>
+                    <td className="py-3 text-brand-muted" colSpan={4}>
+                      No donor ML rows yet. If refresh fails, check that the Azure ML Function App is deployed and{' '}
+                      <code className="text-xs">MlRuntime:FunctionAppUrl</code> is set in API config.
+                    </td>
                   </tr>
                 )}
               </tbody>
@@ -464,9 +482,9 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="rounded-xl border border-brand-border bg-white p-6">
-          <h3 className="font-semibold text-brand-charcoal">Pipelines 2 & 4 · Social Post Scoring</h3>
+          <h3 className="font-semibold text-brand-charcoal">Pipeline 2 · Social post scoring</h3>
           <p className="mt-1 text-xs text-brand-muted">
-            Each post shows donor churn influence (negative) and donor uplift likelihood (positive) for the next year.
+            Post-level churn influence and uplift (uplift may incorporate a donor-level blend after refresh).
           </p>
           <div className="mt-4 max-h-80 overflow-auto">
             <table className="w-full text-xs">
@@ -489,7 +507,10 @@ export default function AdminDashboardPage() {
                 ))}
                 {derived.ml.socialPostScores.length === 0 && (
                   <tr>
-                    <td className="py-3 text-brand-muted" colSpan={3}>No social post scores yet. Click Refresh ML Scores.</td>
+                    <td className="py-3 text-brand-muted" colSpan={3}>
+                      No social post ML scores yet. Run &quot;Refresh ML Scores&quot; after posts exist in the database
+                      and the ML pipeline is configured.
+                    </td>
                   </tr>
                 )}
               </tbody>
@@ -522,7 +543,9 @@ export default function AdminDashboardPage() {
               ))}
               {derived.ml.residentReadiness.length === 0 && (
                 <tr>
-                  <td className="py-3 text-brand-muted" colSpan={3}>No readiness scores yet. Click Refresh ML Scores.</td>
+                  <td className="py-3 text-brand-muted" colSpan={3}>
+                    No reintegration readiness scores yet. Refresh ML after residents and pipeline data are available.
+                  </td>
                 </tr>
               )}
             </tbody>

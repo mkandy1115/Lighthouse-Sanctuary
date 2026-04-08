@@ -1,5 +1,19 @@
 import { getApiBaseUrl, getAuthorizationHeaders } from '@/lib/auth'
 
+function staffApiErrorMessage(data: unknown, fallback: string): string {
+  if (data && typeof data === 'object') {
+    const o = data as Record<string, unknown>
+    if (typeof o.message === 'string' && o.message.trim()) return o.message
+    if (typeof o.title === 'string' && o.title.trim()) return o.title
+    if (o.errors && typeof o.errors === 'object') {
+      const errs = o.errors as Record<string, string[] | undefined>
+      const first = Object.values(errs).flat().find((m) => typeof m === 'string' && m.trim())
+      if (first) return first
+    }
+  }
+  return fallback
+}
+
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${getApiBaseUrl()}${path}`, {
     headers: {
@@ -12,7 +26,11 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
 
   const data = await response.json().catch(() => null)
   if (!response.ok) {
-    throw new Error(data?.message ?? 'Unable to load staff data right now.')
+    throw new Error(staffApiErrorMessage(data, 'Unable to load staff data right now.'))
+  }
+
+  if (response.status === 204 || data === null || data === '') {
+    return undefined as T
   }
 
   return data as T
@@ -168,13 +186,26 @@ export interface ReportsSummaryResponse {
   reintegration: { completed: number; totalTracked: number }
 }
 
-export interface MlDonorRiskItem {
+export interface CampaignSummaryItem {
+  name: string
+  raised: number
+  donorCount: number
+  donationCount: number
+  firstDonationDate: string
+  lastDonationDate: string
+  monthlyData: Array<{ month: string; amount: number }>
+}
+
+export interface MlDonorPipelineItem {
   supporterId: number
   donorName: string
-  churnScore: number
-  churnTier: 'Low' | 'Medium' | 'High' | string
-  modelVersion: string
-  scoredAtUtc: string
+  churnScore?: number | null
+  churnTier?: string | null
+  churnModelVersion?: string | null
+  churnScoredAtUtc?: string | null
+  donorUpliftScore?: number | null
+  upliftModelVersion?: string | null
+  upliftScoredAtUtc?: string | null
 }
 
 export interface MlSocialPostScoreItem {
@@ -200,7 +231,7 @@ export interface MlResidentReadinessItem {
 
 export interface MlInsightsResponse {
   lastRefreshedAtUtc?: string | null
-  donorRisks: MlDonorRiskItem[]
+  donorPipeline: MlDonorPipelineItem[]
   socialPostScores: MlSocialPostScoreItem[]
   residentReadiness: MlResidentReadinessItem[]
 }
@@ -208,6 +239,7 @@ export interface MlInsightsResponse {
 export interface MlRefreshResult {
   refreshedAtUtc: string
   donorChurnUpdated: number
+  donorUpliftUpdated: number
   socialPostScoresUpdated: number
   residentReadinessUpdated: number
   donorImpactUpdated: number
@@ -359,6 +391,17 @@ export function createProcessRecording(payload: Record<string, unknown>) {
   })
 }
 
+export function updateProcessRecording(id: string | number, payload: Record<string, unknown>) {
+  return api<ProcessRecordingItem>(`/api/processrecordings/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function deleteProcessRecording(id: string | number) {
+  return api<void>(`/api/processrecordings/${id}`, { method: 'DELETE' })
+}
+
 export function getHomeVisitations(residentId?: string | number) {
   const suffix = residentId ? `?residentId=${residentId}` : ''
   return api<HomeVisitationItem[]>(`/api/homevisitations${suffix}`)
@@ -371,6 +414,67 @@ export function createHomeVisitation(payload: Record<string, unknown>) {
   })
 }
 
+export function updateHomeVisitation(id: string | number, payload: Record<string, unknown>) {
+  return api<HomeVisitationItem>(`/api/homevisitations/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function deleteHomeVisitation(id: string | number) {
+  return api<void>(`/api/homevisitations/${id}`, { method: 'DELETE' })
+}
+
+export interface SocialMediaPostDto {
+  postId: number
+  platform: string
+  platformPostId: string
+  postUrl?: string | null
+  createdAt: string
+  postType?: string | null
+  caption?: string | null
+  reach?: number | null
+}
+
+export function getSocialMediaPosts(platform?: string) {
+  const q = platform ? `?platform=${encodeURIComponent(platform)}` : ''
+  return api<SocialMediaPostDto[]>(`/api/socialmediaposts${q}`)
+}
+
+export function createSocialMediaPost(payload: Record<string, unknown>) {
+  return api<SocialMediaPostDto>('/api/socialmediaposts', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function updateSocialMediaPost(id: number, payload: Record<string, unknown>) {
+  return api<SocialMediaPostDto>(`/api/socialmediaposts/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function deleteSocialMediaPost(id: number) {
+  return api<void>(`/api/socialmediaposts/${id}`, { method: 'DELETE' })
+}
+
+export interface UpdateSupporterPayload {
+  displayName: string
+  email?: string | null
+  phone?: string | null
+  status: string
+  supporterType?: string | null
+  relationshipType?: string | null
+}
+
+export function updateSupporter(id: string | number, payload: UpdateSupporterPayload) {
+  return api<SupporterListItem>(`/api/supporters/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  })
+}
+
 export interface CreateConferencePayload {
   residentId: number
   planCategory?: string | null
@@ -379,7 +483,8 @@ export interface CreateConferencePayload {
   targetValue?: number | null
   targetDate?: string | null
   status?: string | null
-  caseConferenceDate: string
+  /** Omit or null for intervention plans without a scheduled conference date. */
+  caseConferenceDate?: string | null
 }
 
 export interface UpdateConferencePayload {
@@ -396,11 +501,14 @@ export function getConferences(query?: {
   upcoming?: boolean
   residentId?: string | number
   status?: string
+  /** When false, includes intervention plans with no case conference date (interventions list). Default matches conferences-only API. */
+  scheduledOnly?: boolean
 }) {
   const params = new URLSearchParams()
   if (query?.upcoming != null) params.set('upcoming', String(query.upcoming))
   if (query?.residentId != null) params.set('residentId', String(query.residentId))
   if (query?.status) params.set('status', query.status)
+  if (query?.scheduledOnly === false) params.set('scheduledOnly', 'false')
   const suffix = params.toString() ? `?${params.toString()}` : ''
   return api<ConferenceItem[]>(`/api/conferences${suffix}`)
 }
@@ -419,12 +527,20 @@ export function updateConference(id: string | number, payload: UpdateConferenceP
   })
 }
 
+export function deleteConference(id: string | number) {
+  return api<void>(`/api/conferences/${id}`, { method: 'DELETE' })
+}
+
 export function getAdminDashboard() {
   return api<AdminDashboardResponse>('/api/admin/dashboard')
 }
 
 export function getReportsSummary() {
   return api<ReportsSummaryResponse>('/api/reports/summary')
+}
+
+export function getCampaignSummaries() {
+  return api<CampaignSummaryItem[]>('/api/reports/campaigns')
 }
 
 export function getMlInsights() {
@@ -445,5 +561,12 @@ export function updateAdminUserRole(id: number, role: 'Admin' | 'Donor') {
   return api<AdminUserListItem>(`/api/admin/users/${id}/role`, {
     method: 'PATCH',
     body: JSON.stringify({ role }),
+  })
+}
+
+export function updateAdminUserActive(id: number, isActive: boolean) {
+  return api<AdminUserListItem>(`/api/admin/users/${id}/active`, {
+    method: 'PATCH',
+    body: JSON.stringify({ isActive }),
   })
 }

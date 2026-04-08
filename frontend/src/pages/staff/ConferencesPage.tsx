@@ -3,6 +3,7 @@ import Modal from '@/components/ui/Modal'
 import { formatDate } from '@/lib/formatters'
 import {
   createConference,
+  deleteConference,
   getConferences,
   getResidents,
   updateConference,
@@ -19,6 +20,7 @@ export default function ConferencesPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'completed'>('all')
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingPlanId, setEditingPlanId] = useState<number | null>(null)
   const [form, setForm] = useState({
     residentId: '',
     planCategory: 'Reintegration',
@@ -70,7 +72,39 @@ export default function ConferencesPage() {
       .sort((a, b) => String(a.caseConferenceDate ?? '').localeCompare(String(b.caseConferenceDate ?? '')))
   }, [conferences])
 
-  async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
+  function resetForm() {
+    setForm({
+      residentId: '',
+      planCategory: 'Reintegration',
+      planDescription: '',
+      servicesProvided: '',
+      status: 'Scheduled',
+      caseConferenceDate: new Date().toISOString().slice(0, 10),
+    })
+    setEditingPlanId(null)
+  }
+
+  function openCreate() {
+    resetForm()
+    setIsModalOpen(true)
+    setError('')
+  }
+
+  function openEdit(c: ConferenceItem) {
+    setEditingPlanId(c.planId)
+    setForm({
+      residentId: String(c.residentId),
+      planCategory: c.planCategory ?? 'Reintegration',
+      planDescription: c.planDescription ?? '',
+      servicesProvided: c.servicesProvided ?? '',
+      status: c.status ?? 'Scheduled',
+      caseConferenceDate: c.caseConferenceDate ? String(c.caseConferenceDate).slice(0, 10) : new Date().toISOString().slice(0, 10),
+    })
+    setIsModalOpen(true)
+    setError('')
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     try {
       setError('')
@@ -82,31 +116,36 @@ export default function ConferencesPage() {
         setError('Submitted text contains unsafe input.')
         return
       }
-      await createConference({
+      const payload = {
         residentId: Number(form.residentId),
         planCategory: sanitizeText(form.planCategory, 64),
         planDescription: sanitizeText(form.planDescription, 1000, true),
         servicesProvided: sanitizeText(form.servicesProvided, 200, true) || null,
         status: sanitizeText(form.status, 24),
         caseConferenceDate: form.caseConferenceDate,
-      })
+      }
+      if (editingPlanId != null) {
+        await updateConference(editingPlanId, {
+          planCategory: payload.planCategory,
+          planDescription: payload.planDescription,
+          servicesProvided: payload.servicesProvided,
+          status: payload.status,
+          caseConferenceDate: payload.caseConferenceDate,
+        })
+      } else {
+        await createConference(payload)
+      }
       setIsModalOpen(false)
+      resetForm()
       await loadConferences()
-      setForm({
-        residentId: '',
-        planCategory: 'Reintegration',
-        planDescription: '',
-        servicesProvided: '',
-        status: 'Scheduled',
-        caseConferenceDate: new Date().toISOString().slice(0, 10),
-      })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to create conference.')
+      setError(err instanceof Error ? err.message : 'Unable to save conference.')
     }
   }
 
   async function markCompleted(planId: number) {
     try {
+      setError('')
       await updateConference(planId, { status: 'Completed' })
       await loadConferences()
     } catch (err) {
@@ -114,14 +153,34 @@ export default function ConferencesPage() {
     }
   }
 
+  async function handleDelete(planId: number) {
+    if (!window.confirm('Delete this conference plan?')) return
+    try {
+      setError('')
+      await deleteConference(planId)
+      await loadConferences()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to delete conference.')
+    }
+  }
+
+  const ctrl = 'rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal'
+
   return (
     <div className="animate-fade-in">
-      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)} title="Schedule Conference">
-        <form onSubmit={handleCreate} className="space-y-4">
+      <Modal
+        open={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false)
+          resetForm()
+        }}
+        title={editingPlanId != null ? 'Edit conference' : 'Schedule conference'}
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
           <select
             value={form.residentId}
             onChange={(e) => setForm((f) => ({ ...f, residentId: e.target.value }))}
-            className="w-full rounded-lg border border-brand-border px-4 py-3 text-sm"
+            className={`w-full ${ctrl}`}
             required
           >
             <option value="">Select resident</option>
@@ -135,41 +194,41 @@ export default function ConferencesPage() {
             value={form.planCategory}
             onChange={(e) => setForm((f) => ({ ...f, planCategory: e.target.value }))}
             placeholder="Plan category"
-            className="w-full rounded-lg border border-brand-border px-4 py-3 text-sm"
+            className={`w-full ${ctrl}`}
           />
           <textarea
             value={form.planDescription}
             onChange={(e) => setForm((f) => ({ ...f, planDescription: e.target.value }))}
             placeholder="Conference purpose and plan"
-            className="w-full rounded-lg border border-brand-border px-4 py-3 text-sm min-h-24"
+            className={`w-full ${ctrl} min-h-24`}
             required
           />
           <textarea
             value={form.servicesProvided}
             onChange={(e) => setForm((f) => ({ ...f, servicesProvided: e.target.value }))}
             placeholder="Services provided"
-            className="w-full rounded-lg border border-brand-border px-4 py-3 text-sm min-h-20"
+            className={`w-full ${ctrl} min-h-20`}
           />
           <div className="grid grid-cols-2 gap-3">
             <input
               type="date"
               value={form.caseConferenceDate}
               onChange={(e) => setForm((f) => ({ ...f, caseConferenceDate: e.target.value }))}
-              className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+              className={ctrl}
               required
             />
             <select
               value={form.status}
               onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
-              className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+              className={ctrl}
             >
               <option value="Scheduled">Scheduled</option>
               <option value="In Progress">In Progress</option>
               <option value="Completed">Completed</option>
             </select>
           </div>
-          <button className="w-full rounded-lg bg-brand-bronze px-4 py-3 text-sm font-semibold text-white">
-            Save Conference
+          <button type="submit" className="w-full rounded-lg bg-brand-bronze px-4 py-3 text-sm font-semibold text-white">
+            {editingPlanId != null ? 'Save changes' : 'Save conference'}
           </button>
         </form>
       </Modal>
@@ -180,7 +239,8 @@ export default function ConferencesPage() {
           <p className="text-brand-muted text-sm mt-1">Case conferences and multi-agency coordination meetings</p>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
+          type="button"
+          onClick={openCreate}
           className="bg-brand-bronze text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-brand-bronze-light transition-colors shadow-bronze"
         >
           + Schedule Conference
@@ -232,14 +292,31 @@ export default function ConferencesPage() {
                 <p className="text-xs text-brand-muted">
                   Resident: {c.residentInternalCode ?? '—'} | Services: {c.servicesProvided ?? '—'}
                 </p>
-                {(c.status ?? '').toLowerCase() !== 'completed' && (
+                <div className="mt-3 flex flex-wrap gap-3">
                   <button
-                    onClick={() => markCompleted(c.planId)}
-                    className="mt-3 text-xs font-semibold text-brand-bronze hover:underline"
+                    type="button"
+                    onClick={() => openEdit(c)}
+                    className="text-xs font-semibold text-brand-charcoal hover:underline"
                   >
-                    Mark completed
+                    Edit
                   </button>
-                )}
+                  {(c.status ?? '').toLowerCase() !== 'completed' && (
+                    <button
+                      type="button"
+                      onClick={() => markCompleted(c.planId)}
+                      className="text-xs font-semibold text-brand-bronze hover:underline"
+                    >
+                      Mark completed
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(c.planId)}
+                    className="text-xs font-semibold text-rose-600 hover:underline"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
           </div>

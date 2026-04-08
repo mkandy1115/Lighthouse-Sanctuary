@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Modal from '@/components/ui/Modal'
-import { createSupporter, getSupporters, type SupporterListItem } from '@/lib/staff'
+import { createSupporter, getSupporters, updateSupporter, type SupporterListItem } from '@/lib/staff'
 import { formatDate, formatUsdFromPhp } from '@/lib/formatters'
 import { looksUnsafe, sanitizeText, validateEmail } from '@/lib/validation'
 
@@ -11,6 +11,7 @@ export default function StaffDonorListPage() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingId, setEditingId] = useState<number | null>(null)
   const [form, setForm] = useState({
     supporterType: 'MonetaryDonor',
     displayName: '',
@@ -45,32 +46,8 @@ export default function StaffDonorListPage() {
       || (supporter.email ?? '').toLowerCase().includes(q))
   }, [search, supporters])
 
-  async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setError('')
-
-    const payload = {
-      ...form,
-      displayName: sanitizeText(form.displayName, 160),
-      email: sanitizeText(form.email, 254).toLowerCase(),
-      phone: sanitizeText(form.phone, 40),
-    }
-    if (!payload.displayName) {
-      setError('Display name is required.')
-      return
-    }
-    if (payload.email && !validateEmail(payload.email)) {
-      setError('Enter a valid email address.')
-      return
-    }
-    if (looksUnsafe(payload.displayName)) {
-      setError('Display name contains unsafe input.')
-      return
-    }
-
-    const created = await createSupporter(payload)
-    setSupporters((current) => [created, ...current])
-    setIsModalOpen(false)
+  function resetForm() {
+    setEditingId(null)
     setForm({
       supporterType: 'MonetaryDonor',
       displayName: '',
@@ -82,35 +59,110 @@ export default function StaffDonorListPage() {
     })
   }
 
+  function openCreate() {
+    resetForm()
+    setIsModalOpen(true)
+    setError('')
+  }
+
+  function openEdit(s: SupporterListItem) {
+    setEditingId(s.supporterId)
+    setForm({
+      supporterType: s.supporterType,
+      displayName: s.displayName,
+      email: s.email ?? '',
+      phone: s.phone ?? '',
+      relationshipType: s.relationshipType ?? 'International',
+      status: s.status,
+      acquisitionChannel: 'Website',
+    })
+    setIsModalOpen(true)
+    setError('')
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError('')
+
+    const displayName = sanitizeText(form.displayName, 160)
+    const email = sanitizeText(form.email, 254).toLowerCase()
+    const phone = sanitizeText(form.phone, 40)
+    if (!displayName) {
+      setError('Display name is required.')
+      return
+    }
+    if (email && !validateEmail(email)) {
+      setError('Enter a valid email address.')
+      return
+    }
+    if (looksUnsafe(displayName)) {
+      setError('Display name contains unsafe input.')
+      return
+    }
+
+    try {
+      if (editingId != null) {
+        const updated = await updateSupporter(editingId, {
+          displayName,
+          email: email || null,
+          phone: phone || null,
+          status: form.status,
+          supporterType: form.supporterType,
+          relationshipType: form.relationshipType,
+        })
+        setSupporters((current) => current.map((x) => (x.supporterId === editingId ? { ...x, ...updated } : x)))
+      } else {
+        const created = await createSupporter({
+          ...form,
+          displayName,
+          email,
+          phone,
+        })
+        setSupporters((current) => [created, ...current])
+      }
+      setIsModalOpen(false)
+      resetForm()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to save supporter.')
+    }
+  }
+
   return (
     <div className="animate-fade-in">
-      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Supporter">
-        <form onSubmit={handleCreate} className="space-y-4">
+      <Modal
+        open={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false)
+          resetForm()
+        }}
+        title={editingId != null ? 'Edit supporter' : 'Add supporter'}
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
             value={form.displayName}
             onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))}
             placeholder="Display name"
-            className="w-full rounded-lg border border-brand-border px-4 py-3 text-sm"
+            className="w-full rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
           />
           <div className="grid grid-cols-2 gap-3">
             <input
               value={form.email}
               onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
               placeholder="Email"
-              className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+              className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
             />
             <input
               value={form.phone}
               onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
               placeholder="Phone"
-              className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+              className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <select
               value={form.supporterType}
               onChange={(e) => setForm((f) => ({ ...f, supporterType: e.target.value }))}
-              className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+              className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
             >
               <option value="MonetaryDonor">Monetary Donor</option>
               <option value="InKindDonor">In-Kind Donor</option>
@@ -122,14 +174,14 @@ export default function StaffDonorListPage() {
             <select
               value={form.status}
               onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
-              className="rounded-lg border border-brand-border px-4 py-3 text-sm"
+              className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
             >
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
             </select>
           </div>
-          <button className="w-full rounded-lg bg-brand-bronze px-4 py-3 text-sm font-semibold text-white">
-            Save Supporter
+          <button type="submit" className="w-full rounded-lg bg-brand-bronze px-4 py-3 text-sm font-semibold text-white">
+            {editingId != null ? 'Save changes' : 'Save supporter'}
           </button>
         </form>
       </Modal>
@@ -140,7 +192,8 @@ export default function StaffDonorListPage() {
           <p className="text-brand-muted text-sm mt-1">{supporters.length} supporter records</p>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
+          type="button"
+          onClick={openCreate}
           className="bg-brand-bronze text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-brand-bronze-light transition-colors shadow-bronze"
         >
           + Add Supporter
@@ -152,7 +205,7 @@ export default function StaffDonorListPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search supporters…"
-          className="w-full rounded-lg border border-brand-border px-4 py-3 text-sm"
+          className="w-full rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
         />
       </div>
 
@@ -162,7 +215,7 @@ export default function StaffDonorListPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-border">
-              {['Supporter', 'Type', 'Total Given', 'Last Gift', 'Status', ''].map((h) => (
+              {['Supporter', 'Type', 'Total Given', 'Last Gift', 'Status', 'Actions'].map((h) => (
                 <th key={h} className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">
                   {h}
                 </th>
@@ -187,9 +240,14 @@ export default function StaffDonorListPage() {
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <Link to={`/staff/donors/${supporter.supporterId}`} className="text-brand-bronze text-xs font-medium hover:underline">
-                    View →
-                  </Link>
+                  <div className="flex flex-col gap-1">
+                    <button type="button" onClick={() => openEdit(supporter)} className="text-left text-brand-bronze text-xs font-medium hover:underline">
+                      Edit
+                    </button>
+                    <Link to={`/admin/donors/${supporter.supporterId}`} className="text-brand-charcoal text-xs font-medium hover:underline">
+                      View →
+                    </Link>
+                  </div>
                 </td>
               </tr>
             ))}
