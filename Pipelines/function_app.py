@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -16,6 +17,19 @@ PIPELINE_FOLDERS = [
     "ML_Pipeline_4",
     "ML_Pipeline_5",
 ]
+
+
+def _subprocess_env() -> dict[str, str]:
+    """Match the Function host's import path so pip deps (e.g. pandas) work in child processes."""
+    env = os.environ.copy()
+    paths = [p for p in sys.path if p]
+    existing = env.get("PYTHONPATH", "")
+    if existing:
+        paths = existing.split(os.pathsep) + paths
+    # De-dupe while preserving order
+    merged = list(dict.fromkeys(paths))
+    env["PYTHONPATH"] = os.pathsep.join(merged)
+    return env
 
 
 def _run_pipeline(folder_name: str, profile: str, timeout_seconds: int) -> dict:
@@ -36,6 +50,7 @@ def _run_pipeline(folder_name: str, profile: str, timeout_seconds: int) -> dict:
         text=True,
         timeout=timeout_seconds,
         check=False,
+        env=_subprocess_env(),
     )
 
     if result.returncode != 0:
