@@ -85,6 +85,22 @@ export interface InterventionPlanItem {
   updatedAt: string
 }
 
+export interface ConferenceItem {
+  planId: number
+  residentId: number
+  residentCaseControlNo?: string | null
+  residentInternalCode?: string | null
+  planCategory?: string | null
+  planDescription: string
+  servicesProvided?: string | null
+  targetValue?: number | null
+  targetDate?: string | null
+  status?: string | null
+  caseConferenceDate?: string | null
+  createdAt: string
+  updatedAt: string
+}
+
 export interface ResidentDetailResponse {
   resident: Record<string, unknown>
   safehouseName?: string | null
@@ -117,6 +133,24 @@ export interface SupporterDetailResponse {
   supporter: SupporterListItem
   donations: Array<Record<string, unknown>>
   allocations: Array<Record<string, unknown>>
+}
+
+export interface CreateStaffDonationPayload {
+  supporterId: number
+  donationType: string
+  donationDate: string
+  isRecurring: boolean
+  campaignName?: string | null
+  channelSource?: string | null
+  currencyCode?: string | null
+  amount?: number | null
+  estimatedValue?: number | null
+  impactUnit?: string | null
+  notes?: string | null
+  safehouseId: number
+  programArea: string
+  amountAllocated: number
+  allocationNotes?: string | null
 }
 
 export interface AdminDashboardResponse {
@@ -166,6 +200,18 @@ export interface UpdateResidentPayload {
   reintegrationStatus?: string | null
   reintegrationType?: string | null
   notesRestricted?: string | null
+  subCatTrafficked: boolean
+  subCatPhysicalAbuse: boolean
+  subCatSexualAbuse: boolean
+  subCatAtRisk: boolean
+  isPwd: boolean
+  pwdType?: string | null
+  hasSpecialNeeds: boolean
+  specialNeedsDiagnosis?: string | null
+  familyIs4Ps: boolean
+  familySoloParent: boolean
+  familyIndigenous: boolean
+  familyInformalSettler: boolean
 }
 
 export function updateResident(id: string | number, payload: UpdateResidentPayload) {
@@ -235,9 +281,20 @@ export function createSupporter(payload: Record<string, unknown>) {
   })
 }
 
+export function createStaffDonation(payload: CreateStaffDonationPayload) {
+  return api<Record<string, unknown>>('/api/donations/staff', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
 export function getProcessRecordings(residentId?: string | number) {
   const suffix = residentId ? `?residentId=${residentId}` : ''
   return api<ProcessRecordingItem[]>(`/api/processrecordings${suffix}`)
+}
+
+export function getProcessRecording(id: string | number) {
+  return api<ProcessRecordingItem>(`/api/processrecordings/${id}`)
 }
 
 export function createProcessRecording(payload: Record<string, unknown>) {
@@ -255,6 +312,54 @@ export function getHomeVisitations(residentId?: string | number) {
 export function createHomeVisitation(payload: Record<string, unknown>) {
   return api<HomeVisitationItem>('/api/homevisitations', {
     method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export interface CreateConferencePayload {
+  residentId: number
+  planCategory?: string | null
+  planDescription: string
+  servicesProvided?: string | null
+  targetValue?: number | null
+  targetDate?: string | null
+  status?: string | null
+  caseConferenceDate: string
+}
+
+export interface UpdateConferencePayload {
+  planCategory?: string | null
+  planDescription?: string | null
+  servicesProvided?: string | null
+  targetValue?: number | null
+  targetDate?: string | null
+  status?: string | null
+  caseConferenceDate?: string | null
+}
+
+export function getConferences(query?: {
+  upcoming?: boolean
+  residentId?: string | number
+  status?: string
+}) {
+  const params = new URLSearchParams()
+  if (query?.upcoming != null) params.set('upcoming', String(query.upcoming))
+  if (query?.residentId != null) params.set('residentId', String(query.residentId))
+  if (query?.status) params.set('status', query.status)
+  const suffix = params.toString() ? `?${params.toString()}` : ''
+  return api<ConferenceItem[]>(`/api/conferences${suffix}`)
+}
+
+export function createConference(payload: CreateConferencePayload) {
+  return api<ConferenceItem>('/api/conferences', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function updateConference(id: string | number, payload: UpdateConferencePayload) {
+  return api<ConferenceItem>(`/api/conferences/${id}`, {
+    method: 'PUT',
     body: JSON.stringify(payload),
   })
 }

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import Modal from '@/components/ui/Modal'
 import { createProcessRecording, getProcessRecordings, getResidents, type ProcessRecordingItem, type StaffResidentListItem } from '@/lib/staff'
 import { formatDate } from '@/lib/formatters'
@@ -119,6 +120,9 @@ export default function CounselingListPage() {
             <p className="text-sm text-brand-muted leading-relaxed">{record.sessionNarrative ?? 'No narrative recorded.'}</p>
             <div className="mt-3 text-xs text-brand-muted">Interventions: {record.interventionsApplied ?? '—'}</div>
             <div className="mt-1 text-xs text-brand-muted">Follow-up: {record.followUpActions ?? '—'}</div>
+            <Link to={`/admin/counseling/${record.recordingId}`} className="mt-3 inline-block text-xs font-semibold text-brand-bronze hover:underline">
+              View details →
+            </Link>
           </div>
         ))}
         {isLoading && <div className="py-10 text-center text-brand-muted">Loading process recordings…</div>}

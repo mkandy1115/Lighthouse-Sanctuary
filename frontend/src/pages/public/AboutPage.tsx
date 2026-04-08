@@ -45,14 +45,14 @@ const team = [
   {
     name: 'Amara Mensah',
     role: 'Executive Director',
-    bio: 'Former social policy advisor to the Ghana Ministry of Gender, Children and Social Protection. 18 years in survivor advocacy across Sub-Saharan Africa.',
+    bio: 'Former social policy advisor to the Ghana Ministry of Gender, Children and Social Protection with long-standing survivor advocacy experience across Sub-Saharan Africa.',
     initials: 'AM',
     color: 'from-brand-teal to-brand-teal-light',
   },
   {
     name: 'Kofi Asante',
     role: 'Director of Programs',
-    bio: 'Clinical psychologist with specialization in trauma and displacement. Led survivor services at UNHCR Ghana for 8 years before joining Imari.',
+    bio: 'Clinical psychologist with specialization in trauma and displacement. Led survivor services at UNHCR Ghana before joining Imari.',
     initials: 'KA',
     color: 'from-brand-bronze to-brand-bronze-light',
   },
@@ -66,7 +66,7 @@ const team = [
   {
     name: 'Yaw Darko',
     role: 'Finance & Operations',
-    bio: 'Certified public accountant with 12 years in NGO financial management. Oversees compliance, grants management, and organizational sustainability.',
+    bio: 'Certified public accountant with deep NGO financial management experience. Oversees compliance, grants management, and organizational sustainability.',
     initials: 'YD',
     color: 'from-brand-teal to-brand-teal-light',
   },
@@ -74,32 +74,32 @@ const team = [
 
 const timeline = [
   {
-    year: '2010',
+    year: 'Founding era',
     title: 'Founded in Accra',
-    body: 'Imari opened its first safe home in East Legon, Accra, with capacity for 8 residents and a staff of 4.',
+    body: 'Imari opened its first safe home in East Legon, Accra, with dedicated staffing and resident capacity.',
   },
   {
-    year: '2013',
+    year: 'Early growth',
     title: 'National Recognition',
     body: 'Awarded the Ghana Social Protection Excellence Award and entered a formal partnership with the Department of Social Welfare.',
   },
   {
-    year: '2016',
+    year: 'Expansion phase',
     title: 'Second Safe Home',
     body: 'Expanded to Kumasi with a second residential facility, extending our reach to the Ashanti Region.',
   },
   {
-    year: '2019',
+    year: 'Program launch',
     title: 'Livelihood Program Launch',
     body: 'Launched vocational training and microenterprise support, responding to survivor requests for long-term economic independence.',
   },
   {
-    year: '2022',
+    year: 'Regional growth',
     title: 'Third Facility',
     body: 'Opened our third safe home in Takoradi, serving the Western Region and coastal communities.',
   },
   {
-    year: '2025',
+    year: 'Digital transition',
     title: 'Digital Systems Launch',
     body: 'Imari\'s integrated case management and donor platform goes live, connecting operations across all three facilities.',
   },
@@ -129,7 +129,7 @@ export default function AboutPage() {
             Built from the ground up — by Ghana, for Ghana.
           </h1>
           <p className="text-brand-muted-light text-lg md:text-xl max-w-2xl leading-relaxed">
-            Imari: Safe Haven was founded in 2010 by a group of Ghanaian social workers, lawyers,
+            Imari: Safe Haven was founded by a group of Ghanaian social workers, lawyers,
             and community advocates who saw a gap no government agency was filling: a safe,
             holistic, survivor-centered refuge for trafficking victims and displaced youth.
           </p>
@@ -236,7 +236,7 @@ export default function AboutPage() {
             <p className="text-brand-bronze text-xs font-semibold uppercase tracking-widest mb-4">
               Our journey
             </p>
-            <h2 className="font-serif text-3xl md:text-4xl text-white">15 years of safe haven</h2>
+            <h2 className="font-serif text-3xl md:text-4xl text-white">Our safe haven journey</h2>
           </div>
           <div className="relative">
             {/* Vertical line */}
@@ -252,7 +252,7 @@ export default function AboutPage() {
                           : 'border-white/20 bg-brand-charcoal text-brand-muted-light'
                       }`}
                     >
-                      {year.slice(2)}
+                      {year.charAt(0)}
                     </div>
                   </div>
                   <div className="pt-1 pb-2">

@@ -3,10 +3,10 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { TrendingUp, TrendingDown, Plus } from 'lucide-react'
 
 const platforms = [
-  { name: 'Facebook', followers: 8420, engagementRate: 4.2, postsThisMonth: 12, trend: 'up', reach: 32100 },
-  { name: 'Instagram', followers: 5830, engagementRate: 6.8, postsThisMonth: 18, trend: 'up', reach: 19400 },
-  { name: 'X / Twitter', followers: 2140, engagementRate: 2.1, postsThisMonth: 24, trend: 'down', reach: 7800 },
-  { name: 'LinkedIn', followers: 1290, engagementRate: 5.4, postsThisMonth: 6, trend: 'up', reach: 4200 },
+  { name: 'Facebook', trend: 'up' },
+  { name: 'Instagram', trend: 'up' },
+  { name: 'X / Twitter', trend: 'down' },
+  { name: 'LinkedIn', trend: 'up' },
 ]
 
 const reachData = [
@@ -105,24 +105,8 @@ export default function SocialMediaPage() {
                     : <TrendingDown className="w-3.5 h-3.5 text-rose-500" />
                   }
                 </div>
-                <p className="font-serif text-2xl text-brand-charcoal mb-0.5">
-                  {p.followers.toLocaleString()}
-                </p>
-                <p className="text-xs text-brand-muted mb-3">followers</p>
-                <div className="space-y-1 text-xs text-brand-muted">
-                  <div className="flex justify-between">
-                    <span>Engagement</span>
-                    <span className="font-semibold text-brand-charcoal">{p.engagementRate}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Monthly reach</span>
-                    <span className="font-semibold text-brand-charcoal">{(p.reach / 1000).toFixed(1)}k</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Posts this month</span>
-                    <span className="font-semibold text-brand-charcoal">{p.postsThisMonth}</span>
-                  </div>
-                </div>
+                <p className="font-serif text-2xl text-brand-charcoal mb-0.5">Live data pending</p>
+                <p className="text-xs text-brand-muted mb-3">This panel is awaiting API integration.</p>
               </div>
             ))}
           </div>
@@ -130,7 +114,7 @@ export default function SocialMediaPage() {
           {/* Reach chart */}
           <div className="bg-white border border-brand-border rounded-xl p-5">
             <p className="text-sm font-semibold text-brand-charcoal mb-1">Organic Reach — Facebook & Instagram</p>
-            <p className="text-xs text-brand-muted mb-5">Monthly unique reach over 6 months</p>
+            <p className="text-xs text-brand-muted mb-5">Historical view available after analytics API rollout.</p>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={reachData} margin={{ top: 0, right: 0, left: -10, bottom: 0 }} barSize={14} barGap={4}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E5E3DF" vertical={false} />
@@ -186,9 +170,9 @@ export default function SocialMediaPage() {
         <div className="space-y-4">
           <div className="grid sm:grid-cols-3 gap-4">
             {[
-              { label: 'Total Followers', value: '17,680', delta: '+890 this month', positive: true },
-              { label: 'Avg. Engagement Rate', value: '4.6%', delta: '+0.3% vs last month', positive: true },
-              { label: 'Total Monthly Reach', value: '63.5k', delta: '-2.1k vs last month', positive: false },
+              { label: 'Total Followers', value: 'Live feed pending', delta: 'Awaiting analytics sync', positive: true },
+              { label: 'Avg. Engagement Rate', value: 'Live feed pending', delta: 'Awaiting analytics sync', positive: true },
+              { label: 'Total Monthly Reach', value: 'Live feed pending', delta: 'Awaiting analytics sync', positive: false },
             ].map(({ label, value, delta, positive }) => (
               <div key={label} className="bg-white border border-brand-border rounded-xl p-4">
                 <p className="text-xs font-medium uppercase tracking-wider text-brand-muted mb-2">{label}</p>
@@ -203,8 +187,7 @@ export default function SocialMediaPage() {
           <div className="bg-brand-teal-muted border border-brand-teal/20 rounded-xl p-5">
             <p className="text-sm font-semibold text-brand-charcoal mb-2">Recommendation</p>
             <p className="text-sm text-brand-muted leading-relaxed">
-              Instagram engagement (6.8%) significantly outperforms Facebook (4.2%) for this audience.
-              Consider shifting 20% of Facebook posting cadence to Instagram Reels for higher organic reach.
+              This recommendation area will use database-backed analytics once social reporting metrics are connected.
             </p>
           </div>
         </div>

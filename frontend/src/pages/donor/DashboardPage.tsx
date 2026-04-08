@@ -156,22 +156,26 @@ function ImpactView({ data }: ImpactViewProps) {
 }
 
 function PersonalImpact({ data }: ImpactViewProps) {
-  const { profile, summary, monthlyGiving, recentDonations } = data
+  const { profile, summary, monthlyGiving, recentDonations, organizationImpact } = data
 
   const personalAllocation = useMemo(() => {
     const total = summary.totalGiven || 0
-    const slices = [
-      { category: 'Safe Housing', pct: 40, icon: Home, color: '#2D8A8A' },
-      { category: 'Trauma Counseling', pct: 30, icon: Heart, color: '#92642A' },
-      { category: 'Education & Training', pct: 20, icon: BookOpen, color: '#6B8F71' },
-      { category: 'Operations', pct: 10, icon: Settings, color: '#A8A29E' },
-    ]
+    const palette = ['#2D8A8A', '#92642A', '#6B8F71', '#A8A29E', '#7899C0']
+    const icons = [Home, Heart, BookOpen, Settings, Globe]
+    const source = organizationImpact.campaignBreakdown.slice(0, 5)
+    if (source.length === 0 || total <= 0) return []
 
-    return slices.map((slice) => ({
-      ...slice,
-      amount: Math.round((total * slice.pct) / 100),
-    }))
-  }, [summary.totalGiven])
+    return source.map((slice: { label: string; totalAmount: number }, index: number) => {
+      const pct = total > 0 ? Math.round((slice.totalAmount / total) * 100) : 0
+      return {
+        category: slice.label,
+        pct,
+        icon: icons[index % icons.length],
+        color: palette[index % palette.length],
+        amount: Math.round(slice.totalAmount),
+      }
+    })
+  }, [organizationImpact.campaignBreakdown, summary.totalGiven])
 
   return (
     <div className="space-y-6">

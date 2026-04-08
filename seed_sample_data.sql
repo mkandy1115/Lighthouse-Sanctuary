@@ -130,6 +130,7 @@ values
     (4, 3, 2, 'Education', 3200.00, '2024-04-21', 'In-kind valuation for materials')
 on conflict (allocation_id) do nothing;
 
+
 -- Keep identity sequences aligned when explicit IDs are inserted.
 select setval(pg_get_serial_sequence('safehouses', 'safehouse_id'), coalesce((select max(safehouse_id) from safehouses), 1), true);
 select setval(pg_get_serial_sequence('partners', 'partner_id'), coalesce((select max(partner_id) from partners), 1), true);

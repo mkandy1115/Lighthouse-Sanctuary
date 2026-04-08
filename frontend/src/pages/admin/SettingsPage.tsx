@@ -13,8 +13,8 @@ export default function AdminSettingsPage() {
             {[
               { label: 'Organization Name', value: 'Lighthouse Philippines, Inc.' },
               { label: 'Primary Email', value: 'admin@lighthouseph.org' },
-              { label: 'Support Hotline', value: '1-800-LIGHTHOUSE' },
-              { label: 'Timezone', value: 'Asia/Manila (PHT, UTC+8)' },
+              { label: 'Support Hotline', value: 'LIGHTHOUSE support line' },
+              { label: 'Timezone', value: 'Asia/Manila (PHT)' },
             ].map(({ label, value }) => (
               <div key={label} className="grid grid-cols-2 gap-4 items-center">
                 <label className="text-sm font-medium text-brand-charcoal">{label}</label>
@@ -32,10 +32,10 @@ export default function AdminSettingsPage() {
           <h2 className="font-semibold text-brand-charcoal mb-4">Security Policies</h2>
           <div className="space-y-3">
             {[
-              { label: 'Require 2FA for staff accounts', defaultChecked: true },
-              { label: 'Session timeout after 30 minutes of inactivity', defaultChecked: true },
+              { label: 'Require multi-factor authentication for staff accounts', defaultChecked: true },
+              { label: 'Session timeout after inactivity', defaultChecked: true },
               { label: 'Log all sensitive data access to audit trail', defaultChecked: true },
-              { label: 'Require password change every 90 days', defaultChecked: false },
+              { label: 'Require periodic password changes', defaultChecked: false },
               { label: 'IP allowlist for admin accounts', defaultChecked: false },
             ].map(({ label, defaultChecked }) => (
               <label key={label} className="flex items-center gap-3 cursor-pointer">
@@ -53,8 +53,8 @@ export default function AdminSettingsPage() {
         <section className="bg-brand-cream rounded-xl border border-brand-border p-6">
           <h2 className="font-semibold text-brand-charcoal mb-2">Data Retention</h2>
           <p className="text-sm text-brand-muted mb-4 leading-relaxed">
-            Case records are retained for 10 years per DSWD compliance requirements.
-            Audit logs are retained for 7 years. Donor records are retained indefinitely
+            Case records are retained per DSWD compliance requirements.
+            Audit logs follow internal retention policy. Donor records are retained indefinitely
             unless a deletion request is filed.
           </p>
           <button className="border border-red-200 text-red-600 text-sm font-medium px-4 py-2 rounded-lg hover:bg-red-50 transition-colors">

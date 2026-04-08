@@ -103,7 +103,7 @@ export default function SettingsPage() {
                 { label: 'Email', value: 'ana.reyes@imarighana.org', type: 'email' },
                 { label: 'Role', value: 'Social Worker', type: 'text' },
                 { label: 'Department', value: 'Case Management', type: 'text' },
-                { label: 'Phone', value: '+233 50 123 4567', type: 'tel' },
+                { label: 'Phone', value: 'Staff contact line', type: 'tel' },
               ].map(({ label, value, type }) => (
                 <div key={label}>
                   <label className="block text-xs font-medium text-brand-muted mb-1">{label}</label>
@@ -133,8 +133,8 @@ export default function SettingsPage() {
             {[
               { label: 'Email me when a case is assigned to me', defaultChecked: true },
               { label: 'Email me when a home visit is overdue', defaultChecked: true },
-              { label: 'Weekly summary digest every Monday', defaultChecked: false },
-              { label: 'Notify me when a donor makes a gift over ₵5,000', defaultChecked: true },
+              { label: 'Weekly summary digest', defaultChecked: false },
+              { label: 'Notify me when a donor makes a major gift', defaultChecked: true },
               { label: 'System maintenance alerts', defaultChecked: true },
               { label: 'New campaign milestone alerts', defaultChecked: false },
             ].map(({ label, defaultChecked }) => (

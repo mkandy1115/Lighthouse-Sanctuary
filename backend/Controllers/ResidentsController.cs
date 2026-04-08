@@ -154,6 +154,18 @@ public class ResidentsController(LighthouseContext context) : ControllerBase
             CurrentRiskLevel = request.CurrentRiskLevel,
             InitialRiskLevel = request.CurrentRiskLevel,
             InitialCaseAssessment = request.InitialCaseAssessment,
+            SubCatTrafficked = request.SubCatTrafficked,
+            SubCatPhysicalAbuse = request.SubCatPhysicalAbuse,
+            SubCatSexualAbuse = request.SubCatSexualAbuse,
+            SubCatAtRisk = request.SubCatAtRisk,
+            IsPwd = request.IsPwd,
+            PwdType = request.PwdType,
+            HasSpecialNeeds = request.HasSpecialNeeds,
+            SpecialNeedsDiagnosis = request.SpecialNeedsDiagnosis,
+            FamilyIs4Ps = request.FamilyIs4Ps,
+            FamilySoloParent = request.FamilySoloParent,
+            FamilyIndigenous = request.FamilyIndigenous,
+            FamilyInformalSettler = request.FamilyInformalSettler,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -188,6 +200,18 @@ public class ResidentsController(LighthouseContext context) : ControllerBase
         resident.ReintegrationStatus = request.ReintegrationStatus;
         resident.ReintegrationType = request.ReintegrationType;
         resident.NotesRestricted = request.NotesRestricted;
+        resident.SubCatTrafficked = request.SubCatTrafficked;
+        resident.SubCatPhysicalAbuse = request.SubCatPhysicalAbuse;
+        resident.SubCatSexualAbuse = request.SubCatSexualAbuse;
+        resident.SubCatAtRisk = request.SubCatAtRisk;
+        resident.IsPwd = request.IsPwd;
+        resident.PwdType = request.PwdType;
+        resident.HasSpecialNeeds = request.HasSpecialNeeds;
+        resident.SpecialNeedsDiagnosis = request.SpecialNeedsDiagnosis;
+        resident.FamilyIs4Ps = request.FamilyIs4Ps;
+        resident.FamilySoloParent = request.FamilySoloParent;
+        resident.FamilyIndigenous = request.FamilyIndigenous;
+        resident.FamilyInformalSettler = request.FamilyInformalSettler;
 
         await context.SaveChangesAsync();
         return Ok(resident);

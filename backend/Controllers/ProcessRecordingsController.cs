@@ -49,6 +49,44 @@ public class ProcessRecordingsController(LighthouseContext context) : Controller
         }));
     }
 
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetProcessRecording(int id)
+    {
+        var record = await context.ProcessRecordings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(recording => recording.RecordingId == id);
+        if (record is null)
+        {
+            return NotFound();
+        }
+
+        var resident = await context.Residents
+            .AsNoTracking()
+            .Where(res => res.ResidentId == record.ResidentId)
+            .Select(res => new { res.ResidentId, res.CaseControlNo, res.InternalCode })
+            .FirstOrDefaultAsync();
+
+        return Ok(new
+        {
+            record.RecordingId,
+            record.ResidentId,
+            ResidentCaseControlNo = resident?.CaseControlNo,
+            ResidentInternalCode = resident?.InternalCode,
+            record.SessionDate,
+            record.SocialWorker,
+            record.SessionType,
+            record.SessionDurationMinutes,
+            record.EmotionalStateObserved,
+            record.EmotionalStateEnd,
+            record.SessionNarrative,
+            record.InterventionsApplied,
+            record.FollowUpActions,
+            record.ProgressNoted,
+            record.ConcernsFlagged,
+            record.ReferralMade
+        });
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreateProcessRecording([FromBody] CreateProcessRecordingRequest request)
     {

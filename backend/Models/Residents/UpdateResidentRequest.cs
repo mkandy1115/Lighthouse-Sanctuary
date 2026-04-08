@@ -18,4 +18,16 @@ public class UpdateResidentRequest
     public string? ReintegrationStatus { get; set; }
     public string? ReintegrationType { get; set; }
     public string? NotesRestricted { get; set; }
+    public bool SubCatTrafficked { get; set; }
+    public bool SubCatPhysicalAbuse { get; set; }
+    public bool SubCatSexualAbuse { get; set; }
+    public bool SubCatAtRisk { get; set; }
+    public bool IsPwd { get; set; }
+    public string? PwdType { get; set; }
+    public bool HasSpecialNeeds { get; set; }
+    public string? SpecialNeedsDiagnosis { get; set; }
+    public bool FamilyIs4Ps { get; set; }
+    public bool FamilySoloParent { get; set; }
+    public bool FamilyIndigenous { get; set; }
+    public bool FamilyInformalSettler { get; set; }
 }

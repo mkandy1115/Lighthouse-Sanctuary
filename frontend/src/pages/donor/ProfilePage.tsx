@@ -14,7 +14,7 @@ export default function DonorProfilePage() {
               { label: 'First Name', value: 'Jose' },
               { label: 'Last Name', value: 'Dela Cruz' },
               { label: 'Email', value: 'jose@example.com' },
-              { label: 'Mobile', value: '+63 917 555 0123' },
+              { label: 'Mobile', value: 'Donor contact line' },
               { label: 'Organization', value: '' },
               { label: 'Country', value: 'Philippines' },
             ].map(({ label, value }) => (

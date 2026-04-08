@@ -9,10 +9,10 @@ const programs = [
     tag: 'Core',
     color: 'brand-bronze',
     description:
-      'Three fully-staffed safe homes across Accra, Kumasi, and Takoradi provide immediate, secure housing for survivors. Each home offers private rooms, communal support spaces, nutritious meals, and 24/7 on-site staff.',
+      'Fully staffed safe homes across Accra, Kumasi, and Takoradi provide immediate, secure housing for survivors. Each home offers private rooms, communal support spaces, nutritious meals, and around-the-clock on-site support.',
     features: [
-      'Capacity for 12–18 residents per facility',
-      '24/7 on-site house parents and security',
+      'Residential capacity is managed per facility need',
+      'Around-the-clock house parents and security',
       'Culturally appropriate meals and cultural activities',
       'Visitor policy managed by resident consent',
     ],
@@ -28,7 +28,7 @@ const programs = [
       'Cognitive Processing Therapy (CPT) certified staff',
       'Group sessions for peer connection and solidarity',
       'Art and movement therapy options',
-      'Multilingual support across 4 languages',
+      'Multilingual support',
     ],
   },
   {
@@ -39,7 +39,7 @@ const programs = [
     description:
       'Comprehensive legal support including case accompaniment, national ID and documentation assistance, court preparation, and referrals to our partner legal aid organizations.',
     features: [
-      'Pro bono legal network with 6 partner firms',
+      'Pro bono legal network with partner firms',
       'National ID registration and documentation drives',
       'Court accompaniment for prosecution cases',
       'Immigration and asylum referral pathways',
@@ -53,10 +53,10 @@ const programs = [
     description:
       'Vocational skills programs, microenterprise coaching, savings group facilitation, and job placement partnerships with vetted local employers — building real economic independence.',
     features: [
-      '12 vocational tracks including tailoring, catering, ICT',
+      'Vocational tracks including tailoring, catering, and ICT',
       'Starter kit grants for microenterprise',
       'Savings group (susu) facilitation',
-      '40+ employer partnerships in Accra and Kumasi',
+      'Employer partnerships in Accra and Kumasi',
     ],
   },
   {
@@ -65,10 +65,10 @@ const programs = [
     tag: 'Long-term',
     color: 'brand-bronze',
     description:
-      'Regular welfare checks and structured follow-up support for survivors who have transitioned to independent living. Our outreach team maintains contact for 12–24 months post-discharge.',
+      'Regular welfare checks and structured follow-up support for survivors who have transitioned to independent living. Our outreach team maintains contact throughout the post-discharge period.',
     features: [
-      'Monthly home visits for first 6 months post-discharge',
-      'Quarterly check-ins through 24-month mark',
+      'Recurring home visits after discharge',
+      'Periodic check-ins through long-term follow-up',
       'Crisis re-entry protocol if needed',
       'Peer mentors matched from graduate program',
     ],
@@ -81,7 +81,7 @@ const programs = [
     description:
       'Structured reintegration plans, community sensitization workshops, and a survivor-led peer network that turns graduates into advocates and mentors for those still in the program.',
     features: [
-      'Structured 90-day reintegration plan',
+      'Structured reintegration plan',
       'Community liaison officer in each district',
       'Survivor-led awareness events in schools',
       'Peer mentor certification program',
@@ -97,12 +97,12 @@ const tagColors: Record<string, string> = {
 }
 
 const stages = [
-  { step: '01', label: 'Crisis Intake', desc: 'Safe intake and immediate needs assessment within 24 hours of referral.' },
-  { step: '02', label: 'Safe Home Placement', desc: 'Temporary residential placement while a full needs assessment is completed.' },
-  { step: '03', label: 'Holistic Assessment', desc: 'Medical, legal, psychological, and livelihood needs mapped by a multidisciplinary team.' },
-  { step: '04', label: 'Care Planning', desc: 'Individualized care plan developed with the survivor — not for them.' },
-  { step: '05', label: 'Active Support', desc: 'Counseling, legal, training, and community services delivered in parallel.' },
-  { step: '06', label: 'Reintegration & Aftercare', desc: 'Gradual transition to independence with 12–24 months of structured follow-up.' },
+  { step: 'A', label: 'Crisis Intake', desc: 'Safe intake and immediate needs assessment after referral.' },
+  { step: 'B', label: 'Safe Home Placement', desc: 'Temporary residential placement while a full needs assessment is completed.' },
+  { step: 'C', label: 'Holistic Assessment', desc: 'Medical, legal, psychological, and livelihood needs mapped by a multidisciplinary team.' },
+  { step: 'D', label: 'Care Planning', desc: 'Individualized care plan developed with the survivor — not for them.' },
+  { step: 'E', label: 'Active Support', desc: 'Counseling, legal, training, and community services delivered in parallel.' },
+  { step: 'F', label: 'Reintegration & Aftercare', desc: 'Gradual transition to independence with structured follow-up.' },
 ]
 
 export default function ProgramsPage() {
@@ -118,7 +118,7 @@ export default function ProgramsPage() {
           </p>
           <div className="grid md:grid-cols-2 gap-10 items-end">
             <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl text-brand-charcoal leading-tight">
-              Six programs. One commitment.
+              Integrated programs. One commitment.
             </h1>
             <p className="text-brand-muted text-lg leading-relaxed pb-1">
               Every program at Imari is designed with survivor voices at the center —
@@ -228,7 +228,7 @@ export default function ProgramsPage() {
           </h2>
           <p className="text-brand-muted-light text-lg mb-8 leading-relaxed">
             We accept referrals from social workers, law enforcement, medical providers,
-            and community members. Our intake team responds within 24 hours.
+              and community members. Our intake team responds as quickly as possible.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a

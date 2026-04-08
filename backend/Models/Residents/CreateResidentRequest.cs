@@ -14,4 +14,16 @@ public class CreateResidentRequest
     public string? ReferralSource { get; set; }
     public string? CurrentRiskLevel { get; set; }
     public string? InitialCaseAssessment { get; set; }
+    public bool SubCatTrafficked { get; set; }
+    public bool SubCatPhysicalAbuse { get; set; }
+    public bool SubCatSexualAbuse { get; set; }
+    public bool SubCatAtRisk { get; set; }
+    public bool IsPwd { get; set; }
+    public string? PwdType { get; set; }
+    public bool HasSpecialNeeds { get; set; }
+    public string? SpecialNeedsDiagnosis { get; set; }
+    public bool FamilyIs4Ps { get; set; }
+    public bool FamilySoloParent { get; set; }
+    public bool FamilyIndigenous { get; set; }
+    public bool FamilyInformalSettler { get; set; }
 }

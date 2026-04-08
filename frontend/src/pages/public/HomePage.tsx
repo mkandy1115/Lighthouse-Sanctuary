@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Home,
@@ -17,16 +18,7 @@ import ProgramCard from '@/components/shared/ProgramCard'
 import OutcomeMetric from '@/components/shared/OutcomeMetric'
 import DonorImpactCard from '@/components/shared/DonorImpactCard'
 import { formatPercent, formatUsdFromPhp } from '@/lib/formatters'
-
-/** Aggregate stats from `lighthouse_csv_v7` (same definitions as notebook analysis). */
-const IMPACT_STATS = {
-  /** Count of resident rows with sex = F */
-  girlsSupported: 60,
-  /** Share of residents with reintegration_status = Completed */
-  reintegrationSuccessPct: (19 / 60) * 100,
-  /** Sum of donation_allocations.amount_allocated (PHP) */
-  totalImpactPhp: 282_436.39,
-} as const
+import { getSiteMetrics, type SiteMetricsResponse } from '@/lib/siteMetrics'
 
 // ─── Decorative SVG pattern ───────────────────────────────────────────────────
 function GeometricPattern() {
@@ -51,7 +43,7 @@ function GeometricPattern() {
 }
 
 // ─── A. Hero ──────────────────────────────────────────────────────────────────
-function HeroSection() {
+function HeroSection({ metrics }: { metrics: SiteMetricsResponse | null }) {
   return (
     <section
       className="relative min-h-screen flex flex-col justify-center overflow-hidden"
@@ -99,9 +91,9 @@ function HeroSection() {
 
         <div className="mt-10 flex flex-wrap justify-center gap-3">
           {[
-            { label: '89 Residents Supported', Icon: Users },
-            { label: '14 Active Programs', Icon: Star },
-            { label: `${formatUsdFromPhp(18_000_000)} in Impact`, Icon: TrendingUp },
+            { label: `${metrics?.aggregates.girlsSupported ?? 0} Residents Supported`, Icon: Users },
+            { label: `${metrics?.aggregates.activeCases ?? 0} Active Cases`, Icon: Star },
+            { label: `${formatUsdFromPhp(metrics?.aggregates.totalImpactPhp ?? 0)} in Impact`, Icon: TrendingUp },
           ].map(({ label, Icon }) => (
             <div
               key={label}
@@ -243,16 +235,30 @@ function ProgramsSection() {
 }
 
 // ─── D. Impact / Outcomes ─────────────────────────────────────────────────────
-const outcomeAreas = [
-  { label: 'Safety & Shelter', value: '100% of residents provided stable housing throughout their program duration' },
-  { label: 'Education Access', value: '87% enrolled or re-enrolled in formal education or vocational training' },
-  { label: 'Mental Health', value: '91% reported significant improvement in psychological well-being scores' },
-  { label: 'Family Reconnection', value: '74% successfully reconnected with verified safe family members' },
-  { label: 'Livelihood', value: '68% of graduates secured stable employment or a sustainable livelihood source' },
-  { label: 'Community Integration', value: '93% remained safely integrated in their communities at 12-month follow-up' },
-]
-
-function ImpactSection() {
+function ImpactSection({ metrics }: { metrics: SiteMetricsResponse | null }) {
+  const outcomeAreas = [
+    {
+      label: 'Safety & Shelter',
+      value: `${formatPercent(metrics?.aggregates.stableHousingVisitPct ?? 0, 1)} favorable post-placement outcomes`,
+    },
+    {
+      label: 'Education Access',
+      value: `${formatPercent(metrics?.aggregates.educationProgressPct ?? 0, 1)} residents at strong learning progress`,
+    },
+    {
+      label: 'Mental Health',
+      value: `${formatPercent(metrics?.aggregates.wellbeingPct ?? 0, 1)} residents in stable wellbeing range`,
+    },
+    {
+      label: 'Program Completion',
+      value: `${formatPercent(metrics?.aggregates.programCompletionPct ?? 0, 1)} completion in latest education records`,
+    },
+    {
+      label: 'Reintegration',
+      value: `${formatPercent(metrics?.aggregates.reintegrationSuccessPct ?? 0, 1)} completed among tracked cases`,
+    },
+    { label: 'Active Caseload', value: `${metrics?.aggregates.activeCases ?? 0} currently active resident cases` },
+  ]
   return (
     <section
       className="py-28"
@@ -280,17 +286,17 @@ function ImpactSection() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-14">
           {[
             {
-              stat: String(IMPACT_STATS.girlsSupported),
+              stat: String(metrics?.aggregates.girlsSupported ?? 0),
               label: 'Girls Supported',
               sub: 'female residents in program records',
             },
             {
-              stat: formatPercent(IMPACT_STATS.reintegrationSuccessPct, 1),
+              stat: formatPercent(metrics?.aggregates.reintegrationSuccessPct ?? 0, 1),
               label: 'Reintegration Success',
               sub: 'cases with Completed reintegration status',
             },
             {
-              stat: formatUsdFromPhp(IMPACT_STATS.totalImpactPhp),
+              stat: formatUsdFromPhp(metrics?.aggregates.totalImpactPhp ?? 0),
               label: 'Total Impact',
               sub: 'in services delivered (allocated from donations)',
             },
@@ -332,19 +338,19 @@ function ImpactSection() {
 // ─── E. Donor Impact Storytelling ─────────────────────────────────────────────
 const donorCards = [
   {
-    amount: '$100 / month',
+    amount: 'Monthly recurring gift',
     impact:
-      'Funds four trauma-focused counseling sessions per month for one resident, providing consistent psychological support during a critical stage of healing.',
+      'Funds ongoing trauma-focused counseling, providing consistent psychological support during critical stages of healing.',
   },
   {
-    amount: '$500 gift',
+    amount: 'Supportive one-time gift',
     impact:
-      'Covers one full month of safe housing and nutritious meals for a child in residential care, giving her the stable foundation recovery requires.',
+      'Supports safe housing and nutritious meals for a child in residential care, giving her the stable foundation recovery requires.',
   },
   {
-    amount: '$5,000 gift',
+    amount: 'Transformative lead gift',
     impact:
-      'Establishes a vocational training track for three young women, equipping them with skills and confidence to build a self-determined livelihood.',
+      'Helps establish vocational training opportunities, equipping young women with skills and confidence to build a self-determined livelihood.',
   },
 ]
 
@@ -464,14 +470,20 @@ function CTABannerSection() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function HomePage() {
+  const [metrics, setMetrics] = useState<SiteMetricsResponse | null>(null)
+
+  useEffect(() => {
+    getSiteMetrics().then(setMetrics).catch(() => {})
+  }, [])
+
   return (
     <div className="min-h-screen bg-brand-cream">
       <PublicNav />
       <main id="main-content">
-        <HeroSection />
+      <HeroSection metrics={metrics} />
         <MissionSection />
         <ProgramsSection />
-        <ImpactSection />
+      <ImpactSection metrics={metrics} />
         <DonorStorytellingSection />
         <PartnersSection />
         <CTABannerSection />

@@ -54,6 +54,18 @@ function emptyCreateForm() {
     referralSource: 'NGO',
     currentRiskLevel: 'Medium',
     initialCaseAssessment: '',
+    subCatTrafficked: false,
+    subCatPhysicalAbuse: false,
+    subCatSexualAbuse: false,
+    subCatAtRisk: false,
+    isPwd: false,
+    pwdType: '',
+    hasSpecialNeeds: false,
+    specialNeedsDiagnosis: '',
+    familyIs4Ps: false,
+    familySoloParent: false,
+    familyIndigenous: false,
+    familyInformalSettler: false,
   }
 }
 
@@ -75,6 +87,18 @@ function emptyEditForm() {
     reintegrationStatus: '',
     reintegrationType: '',
     notesRestricted: '',
+    subCatTrafficked: false,
+    subCatPhysicalAbuse: false,
+    subCatSexualAbuse: false,
+    subCatAtRisk: false,
+    isPwd: false,
+    pwdType: '',
+    hasSpecialNeeds: false,
+    specialNeedsDiagnosis: '',
+    familyIs4Ps: false,
+    familySoloParent: false,
+    familyIndigenous: false,
+    familyInformalSettler: false,
   }
 }
 
@@ -165,6 +189,18 @@ export default function CaseListPage() {
         referralSource: form.referralSource,
         currentRiskLevel: form.currentRiskLevel,
         initialCaseAssessment: form.initialCaseAssessment || null,
+        subCatTrafficked: form.subCatTrafficked,
+        subCatPhysicalAbuse: form.subCatPhysicalAbuse,
+        subCatSexualAbuse: form.subCatSexualAbuse,
+        subCatAtRisk: form.subCatAtRisk,
+        isPwd: form.isPwd,
+        pwdType: form.pwdType || null,
+        hasSpecialNeeds: form.hasSpecialNeeds,
+        specialNeedsDiagnosis: form.specialNeedsDiagnosis || null,
+        familyIs4Ps: form.familyIs4Ps,
+        familySoloParent: form.familySoloParent,
+        familyIndigenous: form.familyIndigenous,
+        familyInformalSettler: form.familyInformalSettler,
       })
       await reloadResidents()
       setIsModalOpen(false)
@@ -200,6 +236,18 @@ export default function CaseListPage() {
         reintegrationStatus: String(r.reintegrationStatus ?? ''),
         reintegrationType: String(r.reintegrationType ?? ''),
         notesRestricted: String(r.notesRestricted ?? ''),
+        subCatTrafficked: Boolean(r.subCatTrafficked),
+        subCatPhysicalAbuse: Boolean(r.subCatPhysicalAbuse),
+        subCatSexualAbuse: Boolean(r.subCatSexualAbuse),
+        subCatAtRisk: Boolean(r.subCatAtRisk),
+        isPwd: Boolean(r.isPwd),
+        pwdType: String(r.pwdType ?? ''),
+        hasSpecialNeeds: Boolean(r.hasSpecialNeeds),
+        specialNeedsDiagnosis: String(r.specialNeedsDiagnosis ?? ''),
+        familyIs4Ps: Boolean(r.familyIs4Ps),
+        familySoloParent: Boolean(r.familySoloParent),
+        familyIndigenous: Boolean(r.familyIndigenous),
+        familyInformalSettler: Boolean(r.familyInformalSettler),
       })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to load participant.')
@@ -230,6 +278,18 @@ export default function CaseListPage() {
       reintegrationStatus: editForm.reintegrationStatus.trim() || null,
       reintegrationType: editForm.reintegrationType.trim() || null,
       notesRestricted: editForm.notesRestricted.trim() || null,
+      subCatTrafficked: editForm.subCatTrafficked,
+      subCatPhysicalAbuse: editForm.subCatPhysicalAbuse,
+      subCatSexualAbuse: editForm.subCatSexualAbuse,
+      subCatAtRisk: editForm.subCatAtRisk,
+      isPwd: editForm.isPwd,
+      pwdType: editForm.pwdType.trim() || null,
+      hasSpecialNeeds: editForm.hasSpecialNeeds,
+      specialNeedsDiagnosis: editForm.specialNeedsDiagnosis.trim() || null,
+      familyIs4Ps: editForm.familyIs4Ps,
+      familySoloParent: editForm.familySoloParent,
+      familyIndigenous: editForm.familyIndigenous,
+      familyInformalSettler: editForm.familyInformalSettler,
     }
     try {
       setSaving(true)
@@ -398,6 +458,22 @@ export default function CaseListPage() {
             rows={2}
             className="w-full rounded-lg border border-brand-border px-4 py-3 text-sm"
           />
+          <div className="grid grid-cols-2 gap-2 rounded-lg border border-brand-border p-3 text-xs text-brand-charcoal">
+            <label className="inline-flex items-center gap-2"><input type="checkbox" checked={form.subCatTrafficked} onChange={(e) => setForm((f) => ({ ...f, subCatTrafficked: e.target.checked }))} />Trafficked</label>
+            <label className="inline-flex items-center gap-2"><input type="checkbox" checked={form.subCatPhysicalAbuse} onChange={(e) => setForm((f) => ({ ...f, subCatPhysicalAbuse: e.target.checked }))} />Physical abuse</label>
+            <label className="inline-flex items-center gap-2"><input type="checkbox" checked={form.subCatSexualAbuse} onChange={(e) => setForm((f) => ({ ...f, subCatSexualAbuse: e.target.checked }))} />Sexual abuse</label>
+            <label className="inline-flex items-center gap-2"><input type="checkbox" checked={form.subCatAtRisk} onChange={(e) => setForm((f) => ({ ...f, subCatAtRisk: e.target.checked }))} />At risk</label>
+            <label className="inline-flex items-center gap-2"><input type="checkbox" checked={form.isPwd} onChange={(e) => setForm((f) => ({ ...f, isPwd: e.target.checked }))} />PWD</label>
+            <label className="inline-flex items-center gap-2"><input type="checkbox" checked={form.hasSpecialNeeds} onChange={(e) => setForm((f) => ({ ...f, hasSpecialNeeds: e.target.checked }))} />Special needs</label>
+            <label className="inline-flex items-center gap-2"><input type="checkbox" checked={form.familyIs4Ps} onChange={(e) => setForm((f) => ({ ...f, familyIs4Ps: e.target.checked }))} />4Ps family</label>
+            <label className="inline-flex items-center gap-2"><input type="checkbox" checked={form.familySoloParent} onChange={(e) => setForm((f) => ({ ...f, familySoloParent: e.target.checked }))} />Solo parent</label>
+            <label className="inline-flex items-center gap-2"><input type="checkbox" checked={form.familyIndigenous} onChange={(e) => setForm((f) => ({ ...f, familyIndigenous: e.target.checked }))} />Indigenous</label>
+            <label className="inline-flex items-center gap-2"><input type="checkbox" checked={form.familyInformalSettler} onChange={(e) => setForm((f) => ({ ...f, familyInformalSettler: e.target.checked }))} />Informal settler</label>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <input value={form.pwdType} onChange={(e) => setForm((f) => ({ ...f, pwdType: e.target.value }))} placeholder="PWD type" className="rounded-lg border border-brand-border px-4 py-3 text-sm" />
+            <input value={form.specialNeedsDiagnosis} onChange={(e) => setForm((f) => ({ ...f, specialNeedsDiagnosis: e.target.value }))} placeholder="Special needs diagnosis" className="rounded-lg border border-brand-border px-4 py-3 text-sm" />
+          </div>
           <button
             type="submit"
             disabled={saving}
@@ -565,6 +641,22 @@ export default function CaseListPage() {
               rows={2}
               className="w-full rounded-lg border border-brand-border px-4 py-3 text-sm"
             />
+            <div className="grid grid-cols-2 gap-2 rounded-lg border border-brand-border p-3 text-xs text-brand-charcoal">
+              <label className="inline-flex items-center gap-2"><input type="checkbox" checked={editForm.subCatTrafficked} onChange={(e) => setEditForm((f) => ({ ...f, subCatTrafficked: e.target.checked }))} />Trafficked</label>
+              <label className="inline-flex items-center gap-2"><input type="checkbox" checked={editForm.subCatPhysicalAbuse} onChange={(e) => setEditForm((f) => ({ ...f, subCatPhysicalAbuse: e.target.checked }))} />Physical abuse</label>
+              <label className="inline-flex items-center gap-2"><input type="checkbox" checked={editForm.subCatSexualAbuse} onChange={(e) => setEditForm((f) => ({ ...f, subCatSexualAbuse: e.target.checked }))} />Sexual abuse</label>
+              <label className="inline-flex items-center gap-2"><input type="checkbox" checked={editForm.subCatAtRisk} onChange={(e) => setEditForm((f) => ({ ...f, subCatAtRisk: e.target.checked }))} />At risk</label>
+              <label className="inline-flex items-center gap-2"><input type="checkbox" checked={editForm.isPwd} onChange={(e) => setEditForm((f) => ({ ...f, isPwd: e.target.checked }))} />PWD</label>
+              <label className="inline-flex items-center gap-2"><input type="checkbox" checked={editForm.hasSpecialNeeds} onChange={(e) => setEditForm((f) => ({ ...f, hasSpecialNeeds: e.target.checked }))} />Special needs</label>
+              <label className="inline-flex items-center gap-2"><input type="checkbox" checked={editForm.familyIs4Ps} onChange={(e) => setEditForm((f) => ({ ...f, familyIs4Ps: e.target.checked }))} />4Ps family</label>
+              <label className="inline-flex items-center gap-2"><input type="checkbox" checked={editForm.familySoloParent} onChange={(e) => setEditForm((f) => ({ ...f, familySoloParent: e.target.checked }))} />Solo parent</label>
+              <label className="inline-flex items-center gap-2"><input type="checkbox" checked={editForm.familyIndigenous} onChange={(e) => setEditForm((f) => ({ ...f, familyIndigenous: e.target.checked }))} />Indigenous</label>
+              <label className="inline-flex items-center gap-2"><input type="checkbox" checked={editForm.familyInformalSettler} onChange={(e) => setEditForm((f) => ({ ...f, familyInformalSettler: e.target.checked }))} />Informal settler</label>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <input value={editForm.pwdType} onChange={(e) => setEditForm((f) => ({ ...f, pwdType: e.target.value }))} placeholder="PWD type" className="rounded-lg border border-brand-border px-4 py-3 text-sm" />
+              <input value={editForm.specialNeedsDiagnosis} onChange={(e) => setEditForm((f) => ({ ...f, specialNeedsDiagnosis: e.target.value }))} placeholder="Special needs diagnosis" className="rounded-lg border border-brand-border px-4 py-3 text-sm" />
+            </div>
             <button
               type="submit"
               disabled={saving}

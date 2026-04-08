@@ -10,6 +10,22 @@ namespace Lighthouse.Sanctuary.Api.Controllers;
 [Route("api/[controller]")]
 public class DonationsController(LighthouseContext context) : ControllerBase
 {
+    [HttpGet]
+    public async Task<IActionResult> GetDonations([FromQuery] int? supporterId = null)
+    {
+        var query = context.Donations.AsNoTracking();
+        if (supporterId.HasValue)
+        {
+            query = query.Where(d => d.SupporterId == supporterId.Value);
+        }
+
+        var donations = await query
+            .OrderByDescending(d => d.DonationDate)
+            .ToListAsync();
+
+        return Ok(donations);
+    }
+
     [HttpPost("public")]
     public async Task<IActionResult> CreatePublicDonation([FromBody] PublicDonationRequest request)
     {
@@ -96,6 +112,64 @@ public class DonationsController(LighthouseContext context) : ControllerBase
             Message = request.IsAnonymous
                 ? "Anonymous donation received."
                 : "Donation received successfully."
+        });
+    }
+
+    [HttpPost("staff")]
+    public async Task<IActionResult> CreateStaffDonation([FromBody] CreateStaffDonationRequest request)
+    {
+        var supporterExists = await context.Supporters.AnyAsync(s => s.SupporterId == request.SupporterId);
+        if (!supporterExists)
+        {
+            return BadRequest(new { message = "Supporter not found." });
+        }
+
+        var safehouseExists = await context.Safehouses.AnyAsync(s => s.SafehouseId == request.SafehouseId);
+        if (!safehouseExists)
+        {
+            return BadRequest(new { message = "Safehouse not found." });
+        }
+
+        if (string.IsNullOrWhiteSpace(request.ProgramArea))
+        {
+            return BadRequest(new { message = "Program area is required." });
+        }
+
+        var donation = new Donation
+        {
+            SupporterId = request.SupporterId,
+            DonationType = request.DonationType,
+            DonationDate = request.DonationDate,
+            IsRecurring = request.IsRecurring,
+            CampaignName = request.CampaignName,
+            ChannelSource = request.ChannelSource,
+            CurrencyCode = request.CurrencyCode,
+            Amount = request.Amount,
+            EstimatedValue = request.EstimatedValue ?? request.Amount,
+            ImpactUnit = request.ImpactUnit,
+            Notes = request.Notes
+        };
+
+        context.Donations.Add(donation);
+        await context.SaveChangesAsync();
+
+        var allocation = new DonationAllocation
+        {
+            DonationId = donation.DonationId,
+            SafehouseId = request.SafehouseId,
+            ProgramArea = request.ProgramArea.Trim(),
+            AmountAllocated = request.AmountAllocated,
+            AllocationDate = request.DonationDate,
+            AllocationNotes = request.AllocationNotes
+        };
+
+        context.DonationAllocations.Add(allocation);
+        await context.SaveChangesAsync();
+
+        return Ok(new
+        {
+            donation,
+            allocation
         });
     }
 }

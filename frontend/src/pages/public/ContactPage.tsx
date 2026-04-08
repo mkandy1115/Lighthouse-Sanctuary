@@ -14,12 +14,12 @@ export default function ContactPage() {
             <h2 className="font-serif text-2xl text-brand-charcoal mb-6">Contact Details</h2>
             <dl className="space-y-4 text-sm">
               {[
-                { label: 'Crisis Hotline', value: '1-800-LIGHTHOUSE' },
+                { label: 'Crisis Hotline', value: 'Contact our crisis response desk via the front office for immediate support.' },
                 { label: 'General Inquiries', value: 'hello@lighthouseph.org' },
                 { label: 'Donations', value: 'giving@lighthouseph.org' },
                 { label: 'Partnerships', value: 'partners@lighthouseph.org' },
-                { label: 'Address', value: '123 Sanctuary Road, Quezon City, Metro Manila, Philippines' },
-                { label: 'Office Hours', value: 'Mon–Fri 8:00 AM – 6:00 PM PHT' },
+                { label: 'Address', value: 'Lighthouse Sanctuary, Quezon City, Metro Manila, Philippines' },
+                { label: 'Office Hours', value: 'Weekday daytime office support' },
               ].map(({ label, value }) => (
                 <div key={label} className="flex gap-4">
                   <dt className="text-brand-muted font-medium w-36 shrink-0">{label}</dt>

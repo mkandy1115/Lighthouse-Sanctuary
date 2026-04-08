@@ -1,93 +1,61 @@
 import PublicNav from '@/components/layout/PublicNav'
 import PublicFooter from '@/components/layout/PublicFooter'
+import { useEffect, useState } from 'react'
 import { TrendingUp, Home, BookOpen, Briefcase, Heart, ArrowRight } from 'lucide-react'
 import { formatUsdFromPhp, formatPercent, formatNumber } from '@/lib/formatters'
-import {
-  SURVIVORS_SERVED,
-  PROGRAM_COMPLETION_PCT,
-  STABLE_HOUSING_VISIT_PCT,
-  COMMUNITY_INVESTMENT_PHP,
-  EDUCATION_PROGRESS_PCT,
-  EDUCATION_ATTENDANCE_ENGAGEMENT_PCT,
-  WELLBEING_HEALTH_PCT,
-  FUND_ALLOCATION_BY_PROGRAM,
-  DIRECT_PROGRAM_SHARE_PCT,
-} from '@/data/impactReportStats'
+import { getSiteMetrics, type SiteMetricsResponse } from '@/lib/siteMetrics'
 
-const stats = [
-  {
-    value: formatNumber(SURVIVORS_SERVED),
-    label: 'Survivors Served',
-    sub: 'resident records (female youth)',
-  },
-  {
-    value: formatPercent(PROGRAM_COMPLETION_PCT, 1),
-    label: 'Program Completion',
-    sub: 'latest education record marked Completed',
-  },
-  {
-    value: formatPercent(STABLE_HOUSING_VISIT_PCT, 1),
-    label: 'Stable Housing',
-    sub: 'post-placement visits with Favorable outcome',
-  },
-  {
-    value: formatUsdFromPhp(COMMUNITY_INVESTMENT_PHP),
-    label: 'Community Investment',
-    sub: 'donations allocated to programs (PHP basis)',
-  },
-]
-
-const outcomes = [
-  {
+function getOutcomes(metrics: SiteMetricsResponse | null) {
+  return [
+    {
     icon: Home,
     title: 'Safe & Stable Housing',
     description:
       'Post-placement monitoring visits are tracked in our case system. Among those visits, the share with a Favorable housing stability outcome reflects movement toward safe, appropriate placement.',
-    progress: Math.round(STABLE_HOUSING_VISIT_PCT),
+    progress: Math.round(metrics?.aggregates.stableHousingVisitPct ?? 0),
     color: 'brand-teal',
-    detail: `${formatPercent(STABLE_HOUSING_VISIT_PCT, 1)} Favorable (post-placement visits)`,
+    detail: `${formatPercent(metrics?.aggregates.stableHousingVisitPct ?? 0, 1)} Favorable (post-placement visits)`,
   },
   {
     icon: BookOpen,
     title: 'Education Re-enrollment',
     description:
       'Using the latest education record per resident, we measure progress toward course completion. Strong progress scores indicate residents are on track in formal or vocational pathways.',
-    progress: Math.round(EDUCATION_PROGRESS_PCT),
+    progress: Math.round(metrics?.aggregates.educationProgressPct ?? 0),
     color: 'brand-bronze',
-    detail: `${formatPercent(EDUCATION_PROGRESS_PCT, 1)} at ≥67% learning progress`,
+    detail: `${formatPercent(metrics?.aggregates.educationProgressPct ?? 0, 1)} at ≥67% learning progress`,
   },
   {
     icon: Briefcase,
     title: 'School engagement',
     description:
       'Consistent attendance is a leading indicator of persistence in education and training. We report the share of residents whose latest record shows attendance at or above a 71% threshold.',
-    progress: Math.round(EDUCATION_ATTENDANCE_ENGAGEMENT_PCT),
+    progress: Math.round(metrics?.aggregates.attendanceEngagementPct ?? 0),
     color: 'brand-teal',
-    detail: `${formatPercent(EDUCATION_ATTENDANCE_ENGAGEMENT_PCT, 1)} at ≥71% attendance`,
+    detail: `${formatPercent(metrics?.aggregates.attendanceEngagementPct ?? 0, 1)} at ≥71% attendance`,
   },
   {
     icon: TrendingUp,
     title: 'Psychological Wellbeing',
     description:
       'Clinical check-ins record general health scores on a 1–5 scale. Residents scoring 3.0 or above on the latest record are counted as meeting a stable-or-better wellbeing band.',
-    progress: Math.round(WELLBEING_HEALTH_PCT),
+    progress: Math.round(metrics?.aggregates.wellbeingPct ?? 0),
     color: 'brand-bronze',
-    detail: `${formatPercent(WELLBEING_HEALTH_PCT, 1)} general health score ≥3.0`,
+    detail: `${formatPercent(metrics?.aggregates.wellbeingPct ?? 0, 1)} general health score ≥3.0`,
   },
 ]
+}
 
 const stories = [
   {
     initials: 'A.K.',
-    ageRange: '19',
     region: 'Accra',
     quote:
-      '"When I arrived at Imari I had nothing — no documents, no family contact, no hope. Two years later I run a small tailoring business and I have my own room. That is because of the people here."',
+      '"When I arrived at Imari I had nothing — no documents, no family contact, no hope. With support, I now run a small tailoring business and have my own room. That is because of the people here."',
     program: 'Livelihood Program Graduate',
   },
   {
     initials: 'E.M.',
-    ageRange: '16',
     region: 'Kumasi',
     quote:
       '"The counselors here never made me feel broken. They helped me see that what happened to me was not who I am. I am back in school now and I want to be a nurse."',
@@ -95,21 +63,49 @@ const stories = [
   },
   {
     initials: 'S.A.',
-    ageRange: '22',
     region: 'Takoradi',
     quote:
-      '"I stayed at Imari for 14 months. Now I come back as a peer mentor. Helping others go through what I went through — that is how I heal."',
-    program: 'Peer Mentor — Class of 2023',
+      '"I stayed at Imari through recovery and now I return as a peer mentor. Helping others go through what I went through — that is how I heal."',
+    program: 'Peer Mentor',
   },
 ]
 
-const allocationItems = FUND_ALLOCATION_BY_PROGRAM.map(({ label, pct, color }) => ({
-  label,
-  pct: Math.round(pct * 10) / 10,
-  color,
-}))
-
 export default function ImpactPage() {
+  const [metrics, setMetrics] = useState<SiteMetricsResponse | null>(null)
+  useEffect(() => {
+    getSiteMetrics().then(setMetrics).catch(() => {})
+  }, [])
+  const outcomes = getOutcomes(metrics)
+  const allocationTotal = metrics?.allocations.total ?? 0
+  const allocationItems = (metrics?.allocations.byProgram ?? [])
+    .map((row, index) => ({
+      label: row.programArea?.trim() || 'Uncategorized',
+      pct: allocationTotal > 0 ? (row.amount / allocationTotal) * 100 : 0,
+      color: ['bg-brand-teal', 'bg-brand-bronze', 'bg-amber-400', 'bg-teal-600', 'bg-slate-400', 'bg-slate-300'][index % 6],
+    }))
+    .sort((a, b) => b.pct - a.pct)
+  const stats = [
+    {
+      value: formatNumber(metrics?.aggregates.girlsSupported ?? 0),
+      label: 'Survivors Served',
+      sub: 'resident records (female youth)',
+    },
+    {
+      value: formatPercent(metrics?.aggregates.programCompletionPct ?? 0, 1),
+      label: 'Program Completion',
+      sub: 'latest education record marked Completed',
+    },
+    {
+      value: formatPercent(metrics?.aggregates.stableHousingVisitPct ?? 0, 1),
+      label: 'Stable Housing',
+      sub: 'post-placement visits with Favorable outcome',
+    },
+    {
+      value: formatUsdFromPhp(metrics?.aggregates.totalImpactPhp ?? 0),
+      label: 'Community Investment',
+      sub: 'donations allocated to programs (PHP basis)',
+    },
+  ]
   return (
     <div className="min-h-screen bg-white">
       <PublicNav />
@@ -142,7 +138,7 @@ export default function ImpactPage() {
             {/* Big stat */}
             <div className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center">
               <p className="font-serif text-6xl md:text-7xl text-brand-bronze mb-2">
-                {formatNumber(SURVIVORS_SERVED)}
+                {formatNumber(metrics?.aggregates.girlsSupported ?? 0)}
               </p>
               <p className="text-white text-lg font-semibold mb-1">Survivors Served</p>
               <p className="text-brand-muted-light text-sm">Female residents in current program data</p>
@@ -244,14 +240,14 @@ export default function ImpactPage() {
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
-            {stories.map(({ initials, ageRange, region, quote, program }) => (
+            {stories.map(({ initials, region, quote, program }) => (
               <div key={initials} className="bg-white border border-brand-border rounded-xl p-6 flex flex-col">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="w-10 h-10 rounded-full bg-brand-bronze-muted flex items-center justify-center text-brand-bronze font-semibold text-sm">
                     {initials}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-brand-charcoal">Age {ageRange}</p>
+                    <p className="text-sm font-semibold text-brand-charcoal">Survivor story</p>
                     <p className="text-xs text-brand-muted">{region} Region</p>
                   </div>
                 </div>
@@ -281,10 +277,8 @@ export default function ImpactPage() {
                 Where your money goes
               </h2>
               <p className="text-brand-muted leading-relaxed text-sm mb-8">
-                {formatPercent(DIRECT_PROGRAM_SHARE_PCT, 1)} of allocated funds flow to
-                resident-facing lines (education, wellbeing, transport, maintenance, and outreach),
-                excluding the operations allocation bucket. Totals reflect{' '}
-                {formatUsdFromPhp(COMMUNITY_INVESTMENT_PHP)} in routed support (PHP basis, shown as USD
+                Allocated support is shown by recorded program area. Totals reflect{' '}
+                {formatUsdFromPhp(metrics?.aggregates.totalImpactPhp ?? 0)} in routed support (PHP basis, shown as USD
                 equivalent where applicable).
               </p>
               <div className="space-y-4">
@@ -292,7 +286,7 @@ export default function ImpactPage() {
                   <div key={label}>
                     <div className="flex items-center justify-between text-sm mb-1.5">
                       <span className="text-brand-charcoal font-medium">{label}</span>
-                      <span className="text-brand-muted font-semibold">{pct}%</span>
+                      <span className="text-brand-muted font-semibold">{formatPercent(pct, 1)}</span>
                     </div>
                     <div className="h-2 bg-brand-stone rounded-full overflow-hidden">
                       <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
