@@ -1,0 +1,59 @@
+run_all_local completed_at_utc=2026-04-09T20:21:29Z
+python_executable=/Users/jensroylance/Desktop/School Stuff/Winter 2026/INTEX II/Lighthouse-Sanctuary/ml-pipelines/.venv/bin/python
+python_version=3.14.3 (main, Feb  3 2026, 15:32:20) [Clang 17.0.0 (clang-1700.6.3.2)]
+outputs:
+  - pipeline_1_donor_churn.json (46938 bytes)
+  - pipeline_2_social_engagement_referrals.json (136745 bytes)
+  - pipeline_3_reintegration_readiness.json (9628 bytes)
+  - pipeline_4_donor_uplift_180d.json (9531 bytes)
+  - pipeline_5_donor_impact_allocation.json (14011 bytes)
+run_all_local completed_at_utc=2026-04-09T20:25:22Z
+python_executable=/Users/jensroylance/Desktop/School Stuff/Winter 2026/INTEX II/Lighthouse-Sanctuary/ml-pipelines/.venv/bin/python
+python_version=3.14.3 (main, Feb  3 2026, 15:32:20) [Clang 17.0.0 (clang-1700.6.3.2)]
+outputs:
+  - pipeline_1_donor_churn.json (46938 bytes)
+  - pipeline_2_social_engagement_referrals.json (136756 bytes)
+  - pipeline_3_reintegration_readiness.json (9628 bytes)
+  - pipeline_4_donor_uplift_180d.json (9531 bytes)
+  - pipeline_5_donor_impact_allocation.json (14011 bytes)
+run_all_local completed_at_utc=2026-04-09T20:33:59Z
+python_executable=/Users/jensroylance/Desktop/School Stuff/Winter 2026/INTEX II/Lighthouse-Sanctuary/ml-pipelines/.venv/bin/python
+python_version=3.14.3 (main, Feb  3 2026, 15:32:20) [Clang 17.0.0 (clang-1700.6.3.2)]
+postgres_forced=False
+outputs:
+  - pipeline_1_donor_churn.json (46915 bytes)
+  - pipeline_2_social_engagement_referrals.json (142362 bytes)
+  - pipeline_3_reintegration_readiness.json (9633 bytes)
+  - pipeline_4_donor_uplift_180d.json (9531 bytes)
+  - pipeline_5_donor_impact_allocation.json (13978 bytes)
+run_all_local completed_at_utc=2026-04-09T20:36:37Z
+python_executable=/Users/jensroylance/Desktop/School Stuff/Winter 2026/INTEX II/Lighthouse-Sanctuary/ml-pipelines/.venv/bin/python
+python_version=3.14.3 (main, Feb  3 2026, 15:32:20) [Clang 17.0.0 (clang-1700.6.3.2)]
+outputs:
+  - pipeline_1_donor_churn.json (46915 bytes)
+  - pipeline_2_social_engagement_referrals.json (142362 bytes)
+  - pipeline_3_reintegration_readiness.json (9621 bytes)
+  - pipeline_4_donor_uplift_180d.json (9531 bytes)
+  - pipeline_5_donor_impact_allocation.json (13978 bytes)
+run_all_local completed_at_utc=2026-04-09T20:42:58Z
+python_executable=/Users/jensroylance/Desktop/School Stuff/Winter 2026/INTEX II/Lighthouse-Sanctuary/ml-pipelines/.venv/bin/python
+python_version=3.14.3 (main, Feb  3 2026, 15:32:20) [Clang 17.0.0 (clang-1700.6.3.2)]
+outputs:
+run_all_local completed_at_utc=2026-04-09T20:43:59Z
+python_executable=/Users/jensroylance/Desktop/School Stuff/Winter 2026/INTEX II/Lighthouse-Sanctuary/ml-pipelines/.venv/bin/python
+python_version=3.14.3 (main, Feb  3 2026, 15:32:20) [Clang 17.0.0 (clang-1700.6.3.2)]
+outputs:
+  - pipeline_1_donor_churn.json (46915 bytes)
+  - pipeline_2_social_engagement_referrals.json (142362 bytes)
+  - pipeline_3_reintegration_readiness.json (9649 bytes)
+  - pipeline_4_donor_uplift_180d.json (9531 bytes)
+  - pipeline_5_donor_impact_allocation.json (13978 bytes)
+run_all_local completed_at_utc=2026-04-09T20:46:20Z
+python_executable=/Users/jensroylance/Desktop/School Stuff/Winter 2026/INTEX II/Lighthouse-Sanctuary/ml-pipelines/.venv/bin/python
+python_version=3.14.3 (main, Feb  3 2026, 15:32:20) [Clang 17.0.0 (clang-1700.6.3.2)]
+outputs:
+  - pipeline_1_donor_churn.json (46915 bytes)
+  - pipeline_2_social_engagement_referrals.json (142362 bytes)
+  - pipeline_3_reintegration_readiness.json (9609 bytes)
+  - pipeline_4_donor_uplift_180d.json (9531 bytes)
+  - pipeline_5_donor_impact_allocation.json (13978 bytes)

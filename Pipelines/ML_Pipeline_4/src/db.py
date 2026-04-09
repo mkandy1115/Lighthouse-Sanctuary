@@ -1,8 +1,8 @@
 import getpass
 import os
+import sys
 from pathlib import Path
 
-import pandas as pd
 from sqlalchemy import create_engine
 
 try:
@@ -10,6 +10,16 @@ try:
 except ImportError:
     def load_dotenv(_path: Path) -> None:
         return
+
+_PIPELINES = Path(__file__).resolve().parents[2]
+if str(_PIPELINES) not in sys.path:
+    sys.path.insert(0, str(_PIPELINES))
+
+from pipeline_common.csv_sql import (  # noqa: E402
+    build_duckdb_from_csv,
+    resolve_csv_directory,
+    run_query,
+)
 
 
 def load_env(dotenv_path: str = ".env") -> None:
@@ -23,6 +33,10 @@ def _get_value(key_base: str, profile_name: str) -> str:
 
 
 def build_engine(profile_name: str = "local"):
+    csv_dir = resolve_csv_directory()
+    if csv_dir is not None:
+        return build_duckdb_from_csv(csv_dir)
+
     host = _get_value("DB_HOST", profile_name) or "localhost"
     port = _get_value("DB_PORT", profile_name) or "5432"
     name = _get_value("DB_NAME", profile_name) or "lh_sanctuary"
@@ -31,7 +45,3 @@ def build_engine(profile_name: str = "local"):
     sslmode = _get_value("DB_SSLMODE", profile_name) or "prefer"
     auth = f"{user}:{password}" if password else user
     return create_engine(f"postgresql+psycopg://{auth}@{host}:{port}/{name}?sslmode={sslmode}", pool_pre_ping=True, future=True)
-
-
-def run_query(sql: str, engine) -> pd.DataFrame:
-    return pd.read_sql_query(sql, engine)

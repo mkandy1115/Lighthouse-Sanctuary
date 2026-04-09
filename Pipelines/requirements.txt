@@ -9,6 +9,7 @@ ipykernel
 jupyter_client
 papermill
 pandas
+duckdb>=1.0.0
 numpy
 scikit-learn
 sqlalchemy

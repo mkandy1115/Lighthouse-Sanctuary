@@ -11,6 +11,8 @@ Imari: Safe Haven is a secure, mobile-friendly platform for nonprofit case opera
 
 ---
 
+Note: The live databases are in the Pipelines directory, while the pipelines for grading aree in the ml-pipelines directory.
+
 ## Setup (First Time)
 
 ### Prerequisites
