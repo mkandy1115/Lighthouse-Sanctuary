@@ -203,17 +203,30 @@ export default function AdminUsersPage() {
         <button
           onClick={handleOpenAddModal}
           className="inline-flex items-center gap-2 px-4 py-2 bg-brand-bronze text-white font-semibold rounded-lg hover:bg-brand-bronze-light transition-colors"
+          aria-label="Add new user"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4" aria-hidden="true" />
           Add User
         </button>
       </div>
 
       {error ? (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+        <div
+          className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+        >
+          {error}
+        </div>
       ) : null}
       {notice ? (
-        <div className="mb-4 rounded-lg border border-brand-teal/20 bg-brand-teal-muted/40 px-4 py-3 text-sm text-brand-teal">
+        <div
+          className="mb-4 rounded-lg border border-brand-teal/20 bg-brand-teal-muted/40 px-4 py-3 text-sm text-brand-teal"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           {notice}
         </div>
       ) : null}
@@ -223,7 +236,7 @@ export default function AdminUsersPage() {
           <thead>
             <tr className="border-b border-brand-border">
               {['Name', 'Email', 'Role', 'Status', 'Created', 'Actions'].map((h) => (
-                <th key={h} className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">{h}</th>
+                <th key={h} scope="col" className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">{h}</th>
               ))}
             </tr>
           </thead>
@@ -267,6 +280,7 @@ export default function AdminUsersPage() {
                           onChange={(event) => {
                             void handleRoleChange(user, event.target.value as 'Admin' | 'Donor')
                           }}
+                          aria-label={`Change role for ${user.displayName}`}
                           className="rounded-md border border-brand-border bg-white px-2 py-1 text-xs text-brand-charcoal"
                         >
                           <option value="Donor">Donor</option>
@@ -277,7 +291,9 @@ export default function AdminUsersPage() {
                             type="button"
                             disabled={togglingUserId === user.id}
                             onClick={() => setConfirmDialog({ type: 'deactivate', userId: user.id, userName: user.displayName })}
+                            aria-label={`${user.isActive ? 'Deactivate' : 'Activate'} user ${user.displayName}`}
                             className="text-xs font-semibold text-brand-bronze hover:underline disabled:opacity-50"
+                            aria-busy={togglingUserId === user.id}
                           >
                             {user.isActive ? 'Deactivate' : 'Activate'}
                           </button>
@@ -285,18 +301,22 @@ export default function AdminUsersPage() {
                             type="button"
                             disabled={savingUserId === user.id}
                             onClick={() => handleOpenEditModal(user)}
+                            aria-label={`Edit user ${user.displayName}`}
                             className="text-xs font-semibold text-brand-teal hover:underline disabled:opacity-50 flex items-center gap-1"
+                            aria-busy={savingUserId === user.id}
                           >
-                            <Edit2 className="w-3 h-3" />
+                            <Edit2 className="w-3 h-3" aria-hidden="true" />
                             Edit
                           </button>
                           <button
                             type="button"
                             disabled={savingUserId === user.id}
                             onClick={() => setConfirmDialog({ type: 'delete', userId: user.id, userName: user.displayName })}
+                            aria-label={`Delete user ${user.displayName}`}
                             className="text-xs font-semibold text-red-600 hover:underline disabled:opacity-50 flex items-center gap-1"
+                            aria-busy={savingUserId === user.id}
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-3 h-3" aria-hidden="true" />
                             Delete
                           </button>
                         </div>
@@ -313,78 +333,97 @@ export default function AdminUsersPage() {
       {/* Add/Edit User Modal */}
       {showAddModal ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4" role="dialog" aria-modal="true" aria-labelledby="modal-title">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-serif text-2xl text-brand-charcoal">
+              <h2 id="modal-title" className="font-serif text-2xl text-brand-charcoal">
                 {editingUser ? 'Edit User' : 'Add User'}
               </h2>
               <button
                 onClick={handleCloseModal}
+                aria-label="Close modal"
                 className="text-brand-muted hover:text-brand-charcoal transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
 
             {formError ? (
-              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              <div
+                className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+                role="alert"
+                aria-live="assertive"
+                aria-atomic="true"
+              >
                 {formError}
               </div>
             ) : null}
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-brand-charcoal mb-1">
+                <label htmlFor="username-input" className="block text-sm font-medium text-brand-charcoal mb-1">
                   Username
                 </label>
                 <input
+                  id="username-input"
                   type="text"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   className="w-full rounded-lg border border-brand-border bg-white px-3 py-2 text-sm text-brand-charcoal placeholder-brand-muted focus:outline-none focus:ring-2 focus:ring-brand-bronze/50"
                   placeholder="username"
+                  required
+                  aria-required="true"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-brand-charcoal mb-1">
+                <label htmlFor="displayname-input" className="block text-sm font-medium text-brand-charcoal mb-1">
                   Display Name
                 </label>
                 <input
+                  id="displayname-input"
                   type="text"
                   value={formData.displayName}
                   onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
                   className="w-full rounded-lg border border-brand-border bg-white px-3 py-2 text-sm text-brand-charcoal placeholder-brand-muted focus:outline-none focus:ring-2 focus:ring-brand-bronze/50"
                   placeholder="John Doe"
+                  required
+                  aria-required="true"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-brand-charcoal mb-1">
+                <label htmlFor="email-input" className="block text-sm font-medium text-brand-charcoal mb-1">
                   Email
                 </label>
                 <input
+                  id="email-input"
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full rounded-lg border border-brand-border bg-white px-3 py-2 text-sm text-brand-charcoal placeholder-brand-muted focus:outline-none focus:ring-2 focus:ring-brand-bronze/50"
                   placeholder="john@example.com"
+                  required
+                  aria-required="true"
                 />
               </div>
 
               {editingUser === null ? (
                 <div>
-                  <label className="block text-sm font-medium text-brand-charcoal mb-1">
+                  <label htmlFor="password-input" className="block text-sm font-medium text-brand-charcoal mb-1">
                     Password
                   </label>
                   <input
+                    id="password-input"
                     type="password"
                     value={formData.password || ''}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     className="w-full rounded-lg border border-brand-border bg-white px-3 py-2 text-sm text-brand-charcoal placeholder-brand-muted focus:outline-none focus:ring-2 focus:ring-brand-bronze/50"
                     placeholder="••••••••••••••"
+                    required
+                    aria-required="true"
+                    aria-describedby="password-requirements"
                   />
-                  <p className="text-xs text-brand-muted mt-1">Must be at least 14 characters</p>
+                  <p id="password-requirements" className="text-xs text-brand-muted mt-1">Must be at least 14 characters</p>
                 </div>
               ) : null}
             </div>
@@ -400,6 +439,7 @@ export default function AdminUsersPage() {
                 onClick={() => void handleSaveUser()}
                 disabled={savingUserId !== null}
                 className="flex-1 px-4 py-2 bg-brand-bronze text-white rounded-lg text-sm font-medium hover:bg-brand-bronze-light transition-colors disabled:opacity-50"
+                aria-busy={savingUserId !== null}
               >
                 {savingUserId !== null ? 'Saving...' : editingUser ? 'Update' : 'Create'}
               </button>
@@ -411,8 +451,8 @@ export default function AdminUsersPage() {
       {/* Confirmation Dialog */}
       {confirmDialog ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm mx-4">
-            <h2 className="font-serif text-xl text-brand-charcoal mb-2">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm mx-4" role="alertdialog" aria-labelledby="confirm-title">
+            <h2 id="confirm-title" className="font-serif text-xl text-brand-charcoal mb-2">
               {confirmDialog.type === 'delete' ? 'Delete User' : 'Confirm'}
             </h2>
             <p className="text-sm text-brand-muted mb-6">
@@ -435,6 +475,7 @@ export default function AdminUsersPage() {
                     ? 'bg-red-600 hover:bg-red-700'
                     : 'bg-brand-bronze hover:bg-brand-bronze-light'
                 }`}
+                aria-busy={togglingUserId !== null}
               >
                 {togglingUserId !== null ? 'Processing...' : confirmDialog.type === 'delete' ? 'Delete' : 'Deactivate'}
               </button>
