@@ -25,3 +25,40 @@ public class SetUserActiveRequest
     [Required]
     public bool IsActive { get; set; }
 }
+
+public class CreateAdminUserRequest
+{
+    [Required]
+    [StringLength(64, MinimumLength = 3)]
+    public string Username { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(128, MinimumLength = 2)]
+    public string DisplayName { get; set; } = string.Empty;
+
+    [Required]
+    [EmailAddress]
+    [StringLength(254)]
+    public string Email { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(128, MinimumLength = 14)]
+    public string Password { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(16)]
+    public string Role { get; set; } = "Donor";
+}
+
+public class UpdateAdminUserRequest
+{
+    [StringLength(64, MinimumLength = 3)]
+    public string? Username { get; set; }
+
+    [StringLength(128, MinimumLength = 2)]
+    public string? DisplayName { get; set; }
+
+    [EmailAddress]
+    [StringLength(254)]
+    public string? Email { get; set; }
+}
