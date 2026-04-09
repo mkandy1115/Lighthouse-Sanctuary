@@ -82,6 +82,32 @@ export default function SocialMediaPage() {
 
   const reachChartData = useMemo(() => platformSummary.map((p) => ({ platform: p.name, reach: p.reach })), [platformSummary])
 
+  const topPerformingPosts = useMemo(() => {
+    return [...mlScores]
+      .sort((a, b) => b.upliftScore - a.upliftScore)
+      .slice(0, 5)
+  }, [mlScores])
+
+  const postTypeRecommendations = useMemo(() => {
+    const byType = new Map<string, { count: number; totalUplift: number; totalChurn: number }>()
+    for (const score of mlScores) {
+      const type = score.postType || 'Unknown'
+      const cur = byType.get(type) ?? { count: 0, totalUplift: 0, totalChurn: 0 }
+      cur.count += 1
+      cur.totalUplift += score.upliftScore
+      cur.totalChurn += score.churnScore
+      byType.set(type, cur)
+    }
+    return Array.from(byType.entries())
+      .map(([type, data]) => ({
+        type,
+        count: data.count,
+        avgUplift: data.totalUplift / data.count,
+        avgChurn: data.totalChurn / data.count,
+      }))
+      .sort((a, b) => b.avgUplift - a.avgUplift)
+  }, [mlScores])
+
   function openCreate() {
     setEditingId(null)
     setForm(emptyForm())
@@ -236,6 +262,80 @@ export default function SocialMediaPage() {
 
       {!loading && activeTab === 'Overview' && (
         <div className="space-y-6">
+          {mlScores.length > 0 && (
+            <>
+              <div className="bg-gradient-to-br from-brand-bronze/10 to-brand-bronze/5 border border-brand-bronze/20 rounded-xl p-6">
+                <h2 className="font-semibold text-brand-charcoal mb-4">Recommended Post Types</h2>
+                <p className="text-sm text-brand-muted mb-4">Based on ML analysis of uplift potential:</p>
+                <div className="space-y-3">
+                  {postTypeRecommendations.length === 0 ? (
+                    <p className="text-sm text-brand-muted">No post data yet.</p>
+                  ) : (
+                    postTypeRecommendations.map((rec, idx) => (
+                      <div key={rec.type} className="flex items-start justify-between">
+                        <div>
+                          <p className="font-medium text-brand-charcoal">
+                            {idx + 1}. {rec.type}
+                          </p>
+                          <p className="text-xs text-brand-muted mt-0.5">
+                            {rec.count} posts · {(rec.avgUplift * 100).toFixed(1)}% avg uplift potential
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-semibold text-brand-bronze">
+                            {(rec.avgUplift * 100).toFixed(0)}%
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-white border border-brand-border rounded-xl p-6">
+                <h2 className="font-semibold text-brand-charcoal mb-4">Top 5 Performing Posts</h2>
+                <p className="text-sm text-brand-muted mb-4">Highest uplift potential from your recent posts:</p>
+                {topPerformingPosts.length === 0 ? (
+                  <p className="text-sm text-brand-muted">No post scores yet. Run ML pipeline to generate predictions.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {topPerformingPosts.map((post, idx) => (
+                      <div key={post.postId} className="border border-brand-border rounded-lg p-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-semibold text-sm text-brand-charcoal">#{idx + 1}</span>
+                              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${platformColors[post.platform] ?? 'bg-brand-stone text-brand-charcoal'}`}>
+                                {post.platform}
+                              </span>
+                              {post.postType && (
+                                <span className="text-xs text-brand-muted bg-brand-stone px-2 py-0.5 rounded">
+                                  {post.postType}
+                                </span>
+                              )}
+                            </div>
+                            {post.caption && (
+                              <p className="text-sm text-brand-charcoal line-clamp-2">{post.caption}</p>
+                            )}
+                          </div>
+                          <div className="text-right ml-4">
+                            <p className="text-sm font-semibold text-brand-bronze">
+                              {(post.upliftScore * 100).toFixed(1)}%
+                            </p>
+                            <p className="text-xs text-brand-muted">uplift</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-4 text-xs text-brand-muted">
+                          <div>Churn: <span className="text-brand-charcoal font-medium">{(post.churnScore * 100).toFixed(1)}%</span></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {platformSummary.length === 0 ? (
               <div className="col-span-full bg-white border border-brand-border rounded-xl p-6 text-sm text-brand-muted">
