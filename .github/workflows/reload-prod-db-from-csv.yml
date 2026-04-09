@@ -153,11 +153,12 @@ jobs:
           PY
           )
 
-          admin_payload=$(curl -sS -H "Authorization: Bearer ${token}" \
-            "${PROD_API_BASE_URL}/api/admin/ml-insights")
-          python3 - <<'PY' "$admin_payload"
-          import json, sys
-          payload = json.loads(sys.argv[1])
+          curl -sS -f -H "Authorization: Bearer ${token}" \
+            "${PROD_API_BASE_URL}/api/admin/ml-insights" -o /tmp/ml_insights.json
+          python3 <<'PY'
+          import json
+          with open("/tmp/ml_insights.json") as f:
+              payload = json.load(f)
           print({
               "lastRefreshedAtUtc": payload.get("lastRefreshedAtUtc"),
               "donorPipeline": len(payload.get("donorPipeline", [])),
@@ -166,10 +167,12 @@ jobs:
           })
           PY
 
-          donor_payload=$(curl -sS -H "Authorization: Bearer ${token}" "${PROD_API_BASE_URL}/api/donor/dashboard")
-          python3 - <<'PY' "$donor_payload"
-          import json, sys
-          payload = json.loads(sys.argv[1])
+          curl -sS -f -H "Authorization: Bearer ${token}" \
+            "${PROD_API_BASE_URL}/api/donor/dashboard" -o /tmp/donor_dashboard.json
+          python3 <<'PY'
+          import json
+          with open("/tmp/donor_dashboard.json") as f:
+              payload = json.load(f)
           impact = payload.get("impactPrediction")
           print({
               "hasImpactPrediction": impact is not None,

@@ -63,11 +63,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          insights_payload=$(curl -sS -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
-            "${PROD_API_BASE_URL}/api/admin/ml-insights")
-          python3 - <<'PY' "$insights_payload"
-          import json, sys
-          payload = json.loads(sys.argv[1])
+          curl -sS -f -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
+            "${PROD_API_BASE_URL}/api/admin/ml-insights" -o /tmp/ml_insights.json
+          python3 <<'PY'
+          import json
+          with open("/tmp/ml_insights.json") as f:
+              payload = json.load(f)
           print({
               "lastRefreshedAtUtc": payload.get("lastRefreshedAtUtc"),
               "donorPipeline": len(payload.get("donorPipeline", [])),
