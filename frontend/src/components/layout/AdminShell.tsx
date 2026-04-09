@@ -29,7 +29,7 @@ const navItems = [
   { label: 'Social', to: '/admin/social', icon: Instagram },
   { label: 'Users', to: '/admin/users', icon: ShieldCheck },
   { label: 'Settings', to: '/admin/settings', icon: Settings },
-  { label: 'Profile', to: '/admin/profile', icon: Settings },
+  { label: 'Profile', to: '/admin/profile', icon: User },
 ]
 
 function initialsFromName(name: string) {
