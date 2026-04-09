@@ -36,3 +36,5 @@ backend/.vs/
 # Local database files
 *.db
 *.sqlite
+
+*.env
