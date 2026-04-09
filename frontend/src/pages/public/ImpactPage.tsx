@@ -270,13 +270,13 @@ export default function ImpactPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <p className="text-brand-bronze text-xs font-semibold uppercase tracking-widest mb-4">
+              <p className="text-brand-bronze dark:text-brand-bronze-light text-xs font-semibold uppercase tracking-widest mb-4">
                 Financial transparency
               </p>
-              <h2 className="font-serif text-3xl text-brand-charcoal mb-5">
+              <h2 className="font-serif text-3xl text-brand-charcoal dark:text-white mb-5">
                 Where your money goes
               </h2>
-              <p className="text-brand-muted leading-relaxed text-sm mb-8">
+              <p className="text-brand-muted dark:text-slate-300 leading-relaxed text-sm mb-8">
                 Allocated support is shown by recorded program area. Totals reflect{' '}
                 {formatUsdFromPhp(metrics?.aggregates.totalImpactPhp ?? 0)} in routed support (PHP basis, shown as USD
                 equivalent where applicable).
@@ -285,29 +285,29 @@ export default function ImpactPage() {
                 {allocationItems.map(({ label, pct, color }) => (
                   <div key={label}>
                     <div className="flex items-center justify-between text-sm mb-1.5">
-                      <span className="text-brand-charcoal font-medium">{label}</span>
-                      <span className="text-brand-muted font-semibold">{formatPercent(pct, 1)}</span>
+                      <span className="text-brand-charcoal dark:text-white font-medium">{label}</span>
+                      <span className="text-brand-muted dark:text-slate-300 font-semibold">{formatPercent(pct, 1)}</span>
                     </div>
-                    <div className="h-2 bg-brand-stone rounded-full overflow-hidden">
+                    <div className="h-2 bg-brand-stone dark:bg-slate-700 rounded-full overflow-hidden">
                       <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="bg-brand-teal-muted border border-brand-teal/20 rounded-2xl p-8">
-              <Heart className="w-8 h-8 text-brand-teal mb-5" />
-              <h3 className="font-serif text-xl text-brand-charcoal mb-3">
+            <div className="bg-brand-teal-muted dark:bg-slate-800 border border-brand-teal/20 dark:border-brand-teal/40 rounded-2xl p-8">
+              <Heart className="w-8 h-8 text-brand-teal dark:text-brand-teal-light mb-5" />
+              <h3 className="font-serif text-xl text-brand-charcoal dark:text-white mb-3">
                 Transparency Report
               </h3>
-              <p className="text-brand-muted text-sm leading-relaxed mb-6">
+              <p className="text-brand-muted dark:text-slate-300 text-sm leading-relaxed mb-6">
                 Imari publishes an annual impact report with full financial statements,
                 program outcomes, and survivor testimonials (with consent). Our operations
                 are audited annually by Deloitte Ghana.
               </p>
               <a
                 href="/contact"
-                className="inline-flex items-center gap-2 text-sm font-semibold text-brand-teal hover:text-brand-charcoal transition-colors"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-brand-teal dark:text-brand-teal-light hover:text-brand-charcoal dark:hover:text-white transition-colors"
               >
                 Request a copy of our annual report
                 <ArrowRight className="w-4 h-4" />

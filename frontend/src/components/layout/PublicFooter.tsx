@@ -25,7 +25,7 @@ export default function PublicFooter() {
           {/* Col 1 — About */}
           <div>
             <div className="mb-4 flex items-center gap-2.5">
-              <img src="/imari-icon.svg" alt="" className="h-10 w-10 brightness-0 invert opacity-95" />
+              <img src="/imari-icon.svg" alt="" className="h-10 w-10" />
               <div>
                 <div className="font-semibold text-lg text-white">Imari</div>
                 <div className="text-[10px] text-brand-muted-light tracking-widest uppercase mt-0.5">

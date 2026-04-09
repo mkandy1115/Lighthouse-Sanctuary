@@ -21,7 +21,7 @@ export function validateEmail(value: string): boolean {
 
 /** Matches API AuthController: minimum length only */
 export function validatePasswordMeetsPolicy(value: string): boolean {
-  return value.trim().length >= 8
+  return value.trim().length >= 14
 }
 
 /** @deprecated Use validatePasswordMeetsPolicy */

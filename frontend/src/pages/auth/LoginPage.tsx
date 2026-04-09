@@ -73,7 +73,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="relative">
           <Link to="/" className="flex items-center gap-2.5 leading-none">
-            <img src="/imari-icon.svg" alt="" className="h-10 w-10 brightness-0 invert opacity-90" />
+            <img src="/imari-icon.svg" alt="" className="h-10 w-10" />
             <div className="flex flex-col">
               <span className="font-semibold text-white text-xl tracking-tight">Imari</span>
               <span className="text-[10px] text-brand-muted-light tracking-widest uppercase mt-0.5">
@@ -176,11 +176,18 @@ export default function LoginPage() {
                 'Sign In'
               )}
             </button>
-            <p className="text-center text-xs text-brand-muted">
-              <a href="mailto:admin@imarighana.org" className="text-brand-bronze hover:underline">
-                Need access? Contact your administrator
-              </a>
-            </p>
+            <div className="space-y-3 text-sm text-brand-muted text-center">
+              <div>
+                <Link to="/register" className="text-brand-bronze hover:underline font-medium">
+                  Create a donor account
+                </Link>
+              </div>
+              <div className="text-xs">
+                <a href="mailto:admin@imarighana.org" className="text-brand-bronze hover:underline">
+                  Need access? Contact your administrator
+                </a>
+              </div>
+            </div>
           </form>
         </div>
       </div>

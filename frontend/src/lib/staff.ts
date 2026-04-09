@@ -570,3 +570,35 @@ export function updateAdminUserActive(id: number, isActive: boolean) {
     body: JSON.stringify({ isActive }),
   })
 }
+
+export interface CreateAdminUserPayload {
+  username: string
+  displayName: string
+  email: string
+  password: string
+  role: 'Admin' | 'Donor'
+}
+
+export function createAdminUser(payload: CreateAdminUserPayload) {
+  return api<AdminUserListItem>('/api/admin/users', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export interface UpdateAdminUserPayload {
+  displayName?: string
+  email?: string
+  username?: string
+}
+
+export function updateAdminUser(id: number, payload: UpdateAdminUserPayload) {
+  return api<AdminUserListItem>(`/api/admin/users/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function deleteAdminUser(id: number) {
+  return api<void>(`/api/admin/users/${id}`, { method: 'DELETE' })
+}

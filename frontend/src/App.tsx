@@ -48,6 +48,7 @@ const ConceptC = lazy(() => import('@/pages/concepts/ConceptC'))
 // Auth
 // ---------------------------------------------------------------------------
 const LoginPage = lazy(() => import('@/pages/auth/LoginPage'))
+const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage'))
 
 // ---------------------------------------------------------------------------
 // Staff pages
@@ -165,6 +166,7 @@ export default function App() {
 
             {/* ── Auth ───────────────────────────────────────────────────── */}
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
             {/* ── Donor portal — has its own layout (top bar + sidebar) ──── */}
             <Route path="/donor" element={<RequireAuth><RequireRole role="Donor"><DonorDashboardPage /></RequireRole></RequireAuth>} />
