@@ -312,8 +312,8 @@ export default function AdminUsersPage() {
 
       {/* Add/Edit User Modal */}
       {showAddModal ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-serif text-2xl text-brand-charcoal">
                 {editingUser ? 'Edit User' : 'Add User'}
@@ -410,8 +410,8 @@ export default function AdminUsersPage() {
 
       {/* Confirmation Dialog */}
       {confirmDialog ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm mx-4">
             <h2 className="font-serif text-xl text-brand-charcoal mb-2">
               {confirmDialog.type === 'delete' ? 'Delete User' : 'Confirm'}
             </h2>
