@@ -43,6 +43,7 @@ export default function SocialMediaPage() {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
+  const [showDemoMessage, setShowDemoMessage] = useState(false)
 
   const reload = useCallback(async () => {
     const [postList, ml] = await Promise.all([getSocialMediaPosts(), getMlInsights()])
@@ -109,10 +110,7 @@ export default function SocialMediaPage() {
   }, [mlScores])
 
   function openCreate() {
-    setEditingId(null)
-    setForm(emptyForm())
-    setModalOpen(true)
-    setError('')
+    setShowDemoMessage(true)
   }
 
   function openEdit(post: SocialMediaPostDto) {
@@ -192,6 +190,30 @@ export default function SocialMediaPage() {
           Add post
         </button>
       </div>
+
+      <Modal
+        open={showDemoMessage}
+        onClose={() => setShowDemoMessage(false)}
+        title="Add Post"
+      >
+        <div className="space-y-4">
+          <div className="rounded-lg border border-brand-teal-muted bg-brand-teal-muted/20 p-4">
+            <p className="text-sm text-brand-charcoal">
+              <span className="font-semibold">This full feature is not part of the demo.</span>
+            </p>
+            <p className="text-sm text-brand-muted mt-2">
+              Once we have access to Imari's account login information (Facebook, Instagram, TikTok, LinkedIn, etc.), we can connect them to this dashboard. Then you'll be able to post directly from this view, and all social media posts will automatically feed into the analytics and ML scoring pipeline.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowDemoMessage(false)}
+            className="w-full rounded-lg bg-brand-bronze px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-bronze-light"
+          >
+            Got it
+          </button>
+        </div>
+      </Modal>
 
       <Modal
         open={modalOpen}
