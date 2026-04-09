@@ -153,7 +153,8 @@ jobs:
           PY
           )
 
-          admin_payload=$(curl -sS "${PROD_API_BASE_URL}/api/admin/ml-insights")
+          admin_payload=$(curl -sS -H "Authorization: Bearer ${token}" \
+            "${PROD_API_BASE_URL}/api/admin/ml-insights")
           python3 - <<'PY' "$admin_payload"
           import json, sys
           payload = json.loads(sys.argv[1])
