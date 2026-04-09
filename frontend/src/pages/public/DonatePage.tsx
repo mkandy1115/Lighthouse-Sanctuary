@@ -77,7 +77,7 @@ export default function DonatePage() {
           return
         }
         if (!validateStrongPassword(password)) {
-          setError('Password must be 14+ chars with uppercase, lowercase, number, and symbol.')
+          setError('Password must be at least 14 characters.')
           return
         }
         if ([safeFirstName, safeLastName, safeUsername].some(looksUnsafe)) {
@@ -172,10 +172,10 @@ export default function DonatePage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-slate-900">
       <PublicNav />
 
-      <section className="pt-32 pb-16 bg-brand-charcoal relative overflow-hidden">
+      <section className="pt-32 pb-16 bg-brand-charcoal dark:bg-slate-950 relative overflow-hidden">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center relative">
           <p className="text-brand-bronze text-xs font-semibold uppercase tracking-widest mb-5">
             Give today
@@ -190,26 +190,26 @@ export default function DonatePage() {
         </div>
       </section>
 
-      <section className="py-16 bg-brand-cream">
+      <section className="py-16 bg-brand-cream dark:bg-slate-800">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-5 gap-8">
             <div className="lg:col-span-3">
-              <form onSubmit={handleSubmit} className="bg-white border border-brand-border rounded-2xl p-8 shadow-card">
+              <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-700 border border-brand-border dark:border-slate-600 rounded-2xl p-8 shadow-card">
                 <div className="mb-8">
-                  <p className="text-sm font-semibold text-brand-charcoal mb-3">Giving path</p>
+                  <p className="text-sm font-semibold text-brand-charcoal dark:text-white mb-3">Giving path</p>
                   <div className="grid sm:grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => setMode('anonymous')}
                       className={`rounded-xl border-2 p-4 text-left transition-all ${
                         mode === 'anonymous'
-                          ? 'border-brand-bronze bg-brand-bronze-muted'
-                          : 'border-brand-border bg-white hover:border-brand-bronze/40'
+                          ? 'border-brand-bronze bg-brand-bronze-muted dark:bg-slate-600 dark:border-brand-bronze'
+                          : 'border-brand-border dark:border-slate-600 bg-white dark:bg-slate-600 hover:border-brand-bronze/40'
                       }`}
                     >
-                      <Ghost className="w-5 h-5 text-brand-charcoal mb-2" />
-                      <p className="font-semibold text-brand-charcoal">Donate anonymously</p>
-                      <p className="text-sm text-brand-muted mt-1">
+                      <Ghost className={`w-5 h-5 mb-2 ${mode === 'anonymous' ? 'text-brand-charcoal dark:text-white' : 'text-brand-charcoal dark:text-slate-300'}`} />
+                      <p className={`font-semibold ${mode === 'anonymous' ? 'text-brand-charcoal dark:text-white' : 'text-brand-charcoal dark:text-slate-300'}`}>Donate anonymously</p>
+                      <p className={`text-sm mt-1 ${mode === 'anonymous' ? 'text-brand-muted dark:text-slate-400' : 'text-brand-muted dark:text-slate-400'}`}>
                         Fastest path. No donor account is created.
                       </p>
                     </button>
@@ -218,13 +218,13 @@ export default function DonatePage() {
                       onClick={() => setMode('register')}
                       className={`rounded-xl border-2 p-4 text-left transition-all ${
                         mode === 'register'
-                          ? 'border-brand-teal bg-brand-teal-muted'
-                          : 'border-brand-border bg-white hover:border-brand-teal/40'
+                          ? 'border-brand-teal bg-brand-teal-muted dark:bg-slate-600 dark:border-brand-teal'
+                          : 'border-brand-border dark:border-slate-600 bg-white dark:bg-slate-600 hover:border-brand-teal/40'
                       }`}
                     >
-                      <UserPlus className="w-5 h-5 text-brand-charcoal mb-2" />
-                      <p className="font-semibold text-brand-charcoal">Register as donor</p>
-                      <p className="text-sm text-brand-muted mt-1">
+                      <UserPlus className={`w-5 h-5 mb-2 ${mode === 'register' ? 'text-brand-charcoal dark:text-white' : 'text-brand-charcoal dark:text-slate-300'}`} />
+                      <p className={`font-semibold ${mode === 'register' ? 'text-brand-charcoal dark:text-white' : 'text-brand-charcoal dark:text-slate-300'}`}>Register as donor</p>
+                      <p className={`text-sm mt-1 ${mode === 'register' ? 'text-brand-muted dark:text-slate-400' : 'text-brand-muted dark:text-slate-400'}`}>
                         Create an account and unlock donor features.
                       </p>
                     </button>
@@ -232,7 +232,7 @@ export default function DonatePage() {
                 </div>
 
                 <div className="mb-8">
-                  <p className="text-sm font-semibold text-brand-charcoal mb-3">Giving Frequency</p>
+                  <p className="text-sm font-semibold text-brand-charcoal dark:text-white mb-3">Giving Frequency</p>
                   <div className="flex rounded-lg border border-brand-border overflow-hidden w-fit">
                     <button
                       type="button"
@@ -261,7 +261,7 @@ export default function DonatePage() {
                 </div>
 
                 <div className="mb-8">
-                  <p className="text-sm font-semibold text-brand-charcoal mb-3">Select an Amount (USD)</p>
+                  <p className="text-sm font-semibold text-brand-charcoal dark:text-white mb-3">Select an Amount (USD)</p>
                   <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-4">
                     {presetAmounts.map((amount) => (
                       <button
@@ -291,8 +291,8 @@ export default function DonatePage() {
                 </div>
 
                 {effectiveAmountUsd > 0 && (
-                  <div className="bg-brand-bronze-muted border border-brand-bronze/20 rounded-lg p-4 mb-8">
-                    <p className="text-sm text-brand-charcoal">
+                  <div className="bg-brand-bronze-muted dark:bg-slate-600 border border-brand-bronze/20 dark:border-slate-500 rounded-lg p-4 mb-8">
+                    <p className="text-sm text-brand-charcoal dark:text-slate-100">
                       <span className="font-semibold">Your gift of {formatCurrency(effectiveAmountUsd, 'USD')} </span>
                       {frequency === 'monthly' ? 'each month ' : ''}
                       {impactMessage}
@@ -302,7 +302,7 @@ export default function DonatePage() {
 
                 {mode === 'register' ? (
                   <div className="space-y-4 mb-8">
-                    <p className="text-sm font-semibold text-brand-charcoal">Create donor account</p>
+                    <p className="text-sm font-semibold text-brand-charcoal dark:text-white">Create donor account</p>
                     <div className="grid sm:grid-cols-2 gap-4">
                       <input
                         type="text"
@@ -347,9 +347,9 @@ export default function DonatePage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="mb-8 rounded-xl border border-brand-border bg-brand-stone px-4 py-4">
-                    <p className="text-sm font-semibold text-brand-charcoal mb-1">Anonymous donation</p>
-                    <p className="text-sm text-brand-muted">
+                  <div className="mb-8 rounded-xl border border-brand-border dark:border-slate-600 bg-brand-stone dark:bg-slate-600 px-4 py-4">
+                    <p className="text-sm font-semibold text-brand-charcoal dark:text-white mb-1">Anonymous donation</p>
+                    <p className="text-sm text-brand-muted dark:text-slate-300">
                       Your gift will be recorded without creating a donor login. You can still support the mission immediately.
                     </p>
                   </div>
@@ -382,25 +382,25 @@ export default function DonatePage() {
             </div>
 
             <div className="lg:col-span-2 space-y-6">
-              <div className="bg-white border border-brand-border rounded-2xl p-6 shadow-card">
-                <h2 className="font-serif text-2xl text-brand-charcoal mb-4">What happens next</h2>
-                <div className="space-y-4 text-sm text-brand-muted">
+              <div className="bg-white dark:bg-slate-700 border border-brand-border dark:border-slate-600 rounded-2xl p-6 shadow-card">
+                <h2 className="font-serif text-2xl text-brand-charcoal dark:text-white mb-4">What happens next</h2>
+                <div className="space-y-4 text-sm text-brand-muted dark:text-slate-300">
                   <div>
-                    <p className="font-semibold text-brand-charcoal">Anonymous gift</p>
+                    <p className="font-semibold text-brand-charcoal dark:text-white">Anonymous gift</p>
                     <p>Your donation is recorded immediately without a donor account.</p>
                   </div>
                   <div>
-                    <p className="font-semibold text-brand-charcoal">Registered donor</p>
+                    <p className="font-semibold text-brand-charcoal dark:text-white">Registered donor</p>
                     <p>Your donation is recorded and your donor account is created for future access.</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-brand-charcoal rounded-2xl p-6 text-white">
-                <p className="text-xs uppercase tracking-widest text-brand-bronze font-semibold mb-3">
+              <div className="bg-brand-charcoal dark:bg-slate-900 rounded-2xl p-6 text-white">
+                <p className="text-xs uppercase tracking-widest text-brand-bronze dark:text-brand-bronze-light font-semibold mb-3">
                   Why monthly giving matters
                 </p>
-                <p className="text-sm text-brand-muted-light leading-relaxed">
+                <p className="text-sm text-brand-muted-light dark:text-slate-300 leading-relaxed">
                   Reliable monthly gifts help the organization plan shelter, counseling, education,
                   and reintegration support with greater stability.
                 </p>

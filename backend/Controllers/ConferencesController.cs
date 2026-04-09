@@ -17,7 +17,8 @@ public class ConferencesController(LighthouseContext context) : ControllerBase
     public async Task<IActionResult> GetConferences(
         [FromQuery] bool? upcoming = null,
         [FromQuery] int? residentId = null,
-        [FromQuery] string? status = null)
+        [FromQuery] string? status = null,
+        [FromQuery] bool scheduledOnly = true)
     {
         var residentMap = await context.Residents
             .AsNoTracking()
@@ -28,9 +29,12 @@ public class ConferencesController(LighthouseContext context) : ControllerBase
             });
 
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        var query = context.InterventionPlans
-            .AsNoTracking()
-            .Where(plan => plan.CaseConferenceDate != null);
+        var query = context.InterventionPlans.AsNoTracking();
+
+        if (scheduledOnly)
+        {
+            query = query.Where(plan => plan.CaseConferenceDate != null);
+        }
 
         if (residentId.HasValue)
         {
@@ -39,7 +43,8 @@ public class ConferencesController(LighthouseContext context) : ControllerBase
 
         if (!string.IsNullOrWhiteSpace(status))
         {
-            query = query.Where(plan => plan.Status == status);
+            var normalized = status.Trim().ToLowerInvariant();
+            query = query.Where(plan => plan.Status != null && plan.Status.ToLower() == normalized);
         }
 
         if (upcoming == true)
@@ -175,5 +180,19 @@ public class ConferencesController(LighthouseContext context) : ControllerBase
         plan.UpdatedAt = DateTime.UtcNow;
         await context.SaveChangesAsync();
         return Ok(plan);
+    }
+
+    [HttpDelete("{planId:int}")]
+    public async Task<IActionResult> DeleteConference(int planId)
+    {
+        var plan = await context.InterventionPlans.FirstOrDefaultAsync(p => p.PlanId == planId);
+        if (plan is null)
+        {
+            return NotFound(new { message = "Conference plan not found." });
+        }
+
+        context.InterventionPlans.Remove(plan);
+        await context.SaveChangesAsync();
+        return NoContent();
     }
 }

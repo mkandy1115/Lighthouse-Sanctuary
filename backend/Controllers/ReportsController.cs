@@ -1,3 +1,4 @@
+using System.Globalization;
 using Lighthouse.Sanctuary.Api.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -69,5 +70,47 @@ public class ReportsController(LighthouseContext context) : ControllerBase
                 totalTracked = reintegrationSuccessRate?.totalTracked ?? 0
             }
         });
+    }
+
+    /// <summary>Aggregates monetary donations by campaign name (or &quot;Direct Giving&quot; when unset).</summary>
+    [HttpGet("campaigns")]
+    public async Task<IActionResult> GetCampaignSummaries()
+    {
+        var donations = await context.Donations
+            .AsNoTracking()
+            .Where(d => d.Amount != null)
+            .ToListAsync();
+
+        var culture = CultureInfo.InvariantCulture;
+        var result = donations
+            .GroupBy(d => string.IsNullOrWhiteSpace(d.CampaignName) ? "Direct Giving" : d.CampaignName!.Trim())
+            .Select(group =>
+            {
+                var monthly = group
+                    .GroupBy(d => new { d.DonationDate.Year, d.DonationDate.Month })
+                    .OrderBy(g => g.Key.Year)
+                    .ThenBy(g => g.Key.Month)
+                    .Select(mg => new
+                    {
+                        month = culture.DateTimeFormat.GetAbbreviatedMonthName(mg.Key.Month),
+                        amount = mg.Sum(d => d.Amount ?? 0m)
+                    })
+                    .ToList();
+
+                return new
+                {
+                    name = group.Key,
+                    raised = group.Sum(d => d.Amount ?? 0m),
+                    donorCount = group.Select(d => d.SupporterId).Distinct().Count(),
+                    donationCount = group.Count(),
+                    firstDonationDate = group.Min(d => d.DonationDate).ToString("yyyy-MM-dd", culture),
+                    lastDonationDate = group.Max(d => d.DonationDate).ToString("yyyy-MM-dd", culture),
+                    monthlyData = monthly
+                };
+            })
+            .OrderByDescending(c => c.raised)
+            .ToList();
+
+        return Ok(result);
     }
 }

@@ -37,6 +37,7 @@ public class MlScoringService(
         }
 
         await UpsertDonorScores(donorScores);
+        await UpsertDonorUpliftScores(donorUplift, now);
         await UpsertSocialScores(socialScores);
         await UpsertReadinessScores(readinessScores);
         await UpsertImpactPredictions(impactPredictions);
@@ -47,6 +48,7 @@ public class MlScoringService(
         {
             RefreshedAtUtc = now.ToString("O"),
             DonorChurnUpdated = donorScores.Count,
+            DonorUpliftUpdated = donorUplift.Count,
             SocialPostScoresUpdated = socialScores.Count,
             ResidentReadinessUpdated = readinessScores.Count,
             DonorImpactUpdated = impactPredictions.Count
@@ -240,6 +242,39 @@ public class MlScoringService(
             else
             {
                 context.MlDonorChurnScores.Add(score);
+            }
+        }
+    }
+
+    private async Task UpsertDonorUpliftScores(List<(int SupporterId, decimal UpliftScore)> rows, DateTime scoredAtUtc)
+    {
+        var grouped = rows
+            .GroupBy(r => r.SupporterId)
+            .Select(g => g.OrderByDescending(r => r.UpliftScore).First())
+            .ToList();
+        var validSupporterIds = await context.Supporters
+            .Select(s => s.SupporterId)
+            .ToHashSetAsync();
+        var filtered = grouped.Where(r => validSupporterIds.Contains(r.SupporterId)).ToList();
+        var ids = filtered.Select(r => r.SupporterId).ToList();
+        var existing = await context.MlDonorUpliftScores.Where(s => ids.Contains(s.SupporterId)).ToDictionaryAsync(s => s.SupporterId);
+        foreach (var (supporterId, upliftScore) in filtered)
+        {
+            if (existing.TryGetValue(supporterId, out var row))
+            {
+                row.UpliftScore = upliftScore;
+                row.ModelVersion = "pipeline4-v1";
+                row.ScoredAtUtc = scoredAtUtc;
+            }
+            else
+            {
+                context.MlDonorUpliftScores.Add(new MlDonorUpliftScore
+                {
+                    SupporterId = supporterId,
+                    UpliftScore = upliftScore,
+                    ModelVersion = "pipeline4-v1",
+                    ScoredAtUtc = scoredAtUtc
+                });
             }
         }
     }

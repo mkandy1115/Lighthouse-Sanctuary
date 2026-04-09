@@ -58,6 +58,23 @@ body {
   border-color: #374151 !important;
 }
 
+/* Public home hero — readable in dark mode */
+.home-hero {
+  background: linear-gradient(155deg, #fafaf8 0%, #f5f4f1 55%, #ede8df 100%);
+}
+:root[data-theme='dark'] .home-hero {
+  background: linear-gradient(155deg, #0b1220 0%, #111827 45%, #1e293b 100%);
+}
+:root[data-theme='dark'] .home-hero .home-hero-pattern {
+  opacity: 0.04;
+}
+:root[data-theme='dark'] .home-hero .home-hero-orb-bronze {
+  background: radial-gradient(circle, rgba(184, 134, 74, 0.14) 0%, transparent 72%) !important;
+}
+:root[data-theme='dark'] .home-hero .home-hero-orb-teal {
+  background: radial-gradient(circle, rgba(74, 173, 173, 0.12) 0%, transparent 72%) !important;
+}
+
 /* Heading font */
 h1,
 h2,

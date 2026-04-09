@@ -2,7 +2,7 @@ import { FormEvent, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { changePassword, getStoredAuthUser } from '@/lib/auth'
 import { getThemePreference, saveThemePreference, type ThemePreference } from '@/lib/cookies'
-import { validateStrongPassword } from '@/lib/validation'
+import { validatePasswordMeetsPolicy } from '@/lib/validation'
 
 export default function ProfilePage() {
   const user = getStoredAuthUser()
@@ -27,8 +27,8 @@ export default function ProfilePage() {
     setPasswordError(null)
     setPasswordMessage(null)
 
-    if (!validateStrongPassword(newPassword)) {
-      setPasswordError('Use 14+ characters with uppercase, lowercase, number, and symbol.')
+    if (!validatePasswordMeetsPolicy(newPassword)) {
+      setPasswordError('Use at least 8 characters.')
       return
     }
 

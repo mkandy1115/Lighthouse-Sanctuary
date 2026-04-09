@@ -97,12 +97,12 @@ const tagColors: Record<string, string> = {
 }
 
 const stages = [
-  { step: 'A', label: 'Crisis Intake', desc: 'Safe intake and immediate needs assessment after referral.' },
-  { step: 'B', label: 'Safe Home Placement', desc: 'Temporary residential placement while a full needs assessment is completed.' },
-  { step: 'C', label: 'Holistic Assessment', desc: 'Medical, legal, psychological, and livelihood needs mapped by a multidisciplinary team.' },
-  { step: 'D', label: 'Care Planning', desc: 'Individualized care plan developed with the survivor — not for them.' },
-  { step: 'E', label: 'Active Support', desc: 'Counseling, legal, training, and community services delivered in parallel.' },
-  { step: 'F', label: 'Reintegration & Aftercare', desc: 'Gradual transition to independence with structured follow-up.' },
+  { step: '1', label: 'Crisis Intake', desc: 'Safe intake and immediate needs assessment after referral.' },
+  { step: '2', label: 'Safe Home Placement', desc: 'Temporary residential placement while a full needs assessment is completed.' },
+  { step: '3', label: 'Holistic Assessment', desc: 'Medical, legal, psychological, and livelihood needs mapped by a multidisciplinary team.' },
+  { step: '4', label: 'Care Planning', desc: 'Individualized care plan developed with the survivor — not for them.' },
+  { step: '5', label: 'Active Support', desc: 'Counseling, legal, training, and community services delivered in parallel.' },
+  { step: '6', label: 'Reintegration & Aftercare', desc: 'Gradual transition to independence with structured follow-up.' },
 ]
 
 export default function ProgramsPage() {

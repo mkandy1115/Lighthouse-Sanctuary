@@ -24,10 +24,13 @@ export default function PublicFooter() {
 
           {/* Col 1 — About */}
           <div>
-            <div className="mb-4">
-              <div className="font-semibold text-lg text-white">🕊️ Imari</div>
-              <div className="text-[10px] text-brand-muted-light tracking-widest uppercase mt-0.5">
-                Safe Haven
+            <div className="mb-4 flex items-center gap-2.5">
+              <img src="/imari-icon.svg" alt="" className="h-10 w-10" />
+              <div>
+                <div className="font-semibold text-lg text-white">Imari</div>
+                <div className="text-[10px] text-brand-muted-light tracking-widest uppercase mt-0.5">
+                  Safe Haven
+                </div>
               </div>
             </div>
             <p className="text-sm text-brand-muted-light leading-relaxed mb-5">

@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import { Link } from 'react-router-dom'
-import { Menu, X, Heart } from 'lucide-react'
+import { Menu, X, Heart, Moon, Sun } from 'lucide-react'
+import { ThemeContext } from '@/App'
 
 const navLinks = [
   { label: 'Home', to: '/' },
@@ -10,6 +11,7 @@ const navLinks = [
 ]
 
 export default function PublicNav() {
+  const { theme, setTheme } = useContext(ThemeContext)
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -19,12 +21,17 @@ export default function PublicNav() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Close mobile menu on route change / resize
   useEffect(() => {
-    const onResize = () => { if (window.innerWidth >= 768) setMobileOpen(false) }
+    const onResize = () => {
+      if (window.innerWidth >= 768) setMobileOpen(false)
+    }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])
+
+  function toggleTheme() {
+    setTheme(theme === 'dark' ? 'light' : 'dark')
+  }
 
   return (
     <header
@@ -37,7 +44,6 @@ export default function PublicNav() {
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16"
         aria-label="Primary navigation"
       >
-        {/* Logo */}
         <Link
           to="/"
           className="flex items-center gap-2.5 leading-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-bronze rounded"
@@ -58,7 +64,6 @@ export default function PublicNav() {
           </div>
         </Link>
 
-        {/* Desktop center nav */}
         <ul className="hidden md:flex items-center gap-1" role="list">
           {navLinks.map((link) => (
             <li key={link.to}>
@@ -72,8 +77,15 @@ export default function PublicNav() {
           ))}
         </ul>
 
-        {/* Desktop right CTAs */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-2">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="rounded-lg border border-brand-border p-2 text-brand-charcoal hover:bg-brand-stone transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-bronze"
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? <Sun className="h-4 w-4" aria-hidden /> : <Moon className="h-4 w-4" aria-hidden />}
+          </button>
           <Link
             to="/login"
             className="px-4 py-2 text-sm font-medium text-brand-charcoal border border-brand-border rounded-lg hover:bg-brand-stone transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-bronze"
@@ -89,19 +101,27 @@ export default function PublicNav() {
           </Link>
         </div>
 
-        {/* Mobile hamburger */}
-        <button
-          className="md:hidden p-2 rounded-md text-brand-charcoal hover:bg-brand-stone transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-bronze"
-          onClick={() => setMobileOpen((o) => !o)}
-          aria-expanded={mobileOpen}
-          aria-controls="mobile-nav-menu"
-          aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
-        >
-          {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+        <div className="flex md:hidden items-center gap-1">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="p-2 rounded-md text-brand-charcoal hover:bg-brand-stone transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-bronze"
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
+          <button
+            className="p-2 rounded-md text-brand-charcoal hover:bg-brand-stone transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-bronze"
+            onClick={() => setMobileOpen((o) => !o)}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-nav-menu"
+            aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          >
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
       </nav>
 
-      {/* Mobile dropdown */}
       {mobileOpen && (
         <div
           id="mobile-nav-menu"
@@ -123,6 +143,13 @@ export default function PublicNav() {
             ))}
           </ul>
           <div className="px-4 pb-4 pt-1 flex flex-col gap-2 border-t border-brand-border">
+            <Link
+              to="/login"
+              onClick={() => setMobileOpen(false)}
+              className="w-full text-center px-4 py-2.5 text-sm font-medium border border-brand-border text-brand-charcoal rounded-lg hover:bg-brand-stone transition-colors"
+            >
+              Portal Login
+            </Link>
             <Link
               to="/contact"
               onClick={() => setMobileOpen(false)}

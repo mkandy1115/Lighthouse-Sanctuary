@@ -24,7 +24,7 @@ import { getSiteMetrics, type SiteMetricsResponse } from '@/lib/siteMetrics'
 function GeometricPattern() {
   return (
     <svg
-      className="absolute inset-0 w-full h-full opacity-[0.045] pointer-events-none"
+      className="home-hero-pattern absolute inset-0 w-full h-full opacity-[0.045] pointer-events-none"
       aria-hidden="true"
       xmlns="http://www.w3.org/2000/svg"
     >
@@ -46,20 +46,18 @@ function GeometricPattern() {
 function HeroSection({ metrics }: { metrics: SiteMetricsResponse | null }) {
   return (
     <section
-      className="relative min-h-screen flex flex-col justify-center overflow-hidden"
-      style={{ background: 'linear-gradient(155deg, #FAFAF8 0%, #F5F4F1 55%, #EDE8DF 100%)' }}
+      className="home-hero relative min-h-screen flex flex-col justify-center overflow-hidden"
       aria-labelledby="hero-heading"
     >
       <GeometricPattern />
 
-      {/* Soft glow orbs */}
       <div
-        className="absolute -right-32 top-1/3 w-[500px] h-[500px] rounded-full pointer-events-none"
+        className="home-hero-orb-bronze absolute -right-32 top-1/3 w-[500px] h-[500px] rounded-full pointer-events-none"
         style={{ background: 'radial-gradient(circle, rgba(146,100,42,0.10) 0%, transparent 70%)' }}
         aria-hidden="true"
       />
       <div
-        className="absolute -left-24 bottom-1/4 w-80 h-80 rounded-full pointer-events-none"
+        className="home-hero-orb-teal absolute -left-24 bottom-1/4 w-80 h-80 rounded-full pointer-events-none"
         style={{ background: 'radial-gradient(circle, rgba(45,138,138,0.10) 0%, transparent 70%)' }}
         aria-hidden="true"
       />
@@ -89,9 +87,10 @@ function HeroSection({ metrics }: { metrics: SiteMetricsResponse | null }) {
           }
         />
 
+        {/* Hero chips map to SiteMetricsController: girlsSupported = female residents count; activeCases; totalImpactPhp */}
         <div className="mt-10 flex flex-wrap justify-center gap-3">
           {[
-            { label: `${metrics?.aggregates.girlsSupported ?? 0} Residents Supported`, Icon: Users },
+            { label: `${metrics?.aggregates.girlsSupported ?? 0} Girls in Care`, Icon: Users },
             { label: `${metrics?.aggregates.activeCases ?? 0} Active Cases`, Icon: Star },
             { label: `${formatUsdFromPhp(metrics?.aggregates.totalImpactPhp ?? 0)} in Impact`, Icon: TrendingUp },
           ].map(({ label, Icon }) => (
@@ -109,7 +108,7 @@ function HeroSection({ metrics }: { metrics: SiteMetricsResponse | null }) {
       {/* Wave divider */}
       <div className="absolute bottom-0 left-0 right-0 overflow-hidden leading-[0]" aria-hidden="true">
         <svg viewBox="0 0 1440 52" className="w-full" preserveAspectRatio="none">
-          <path d="M0,52 C480,0 960,48 1440,20 L1440,52 Z" fill="white" />
+          <path d="M0,52 C480,0 960,48 1440,20 L1440,52 Z" fill="var(--brand-cream)" />
         </svg>
       </div>
     </section>

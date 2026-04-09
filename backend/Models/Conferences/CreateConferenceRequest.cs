@@ -23,5 +23,7 @@ public class CreateConferenceRequest
 
     [StringLength(24)]
     public string? Status { get; set; }
-    public DateOnly CaseConferenceDate { get; set; }
+
+    /// <summary>Optional. When null, the plan is stored as an intervention without a scheduled conference date.</summary>
+    public DateOnly? CaseConferenceDate { get; set; }
 }

@@ -40,6 +40,35 @@ public class MlInsightsController(
                     ScoredAtUtc = score.ScoredAtUtc.ToString("O")
                 }
             ).ToListAsync();
+        var churnById = await context.MlDonorChurnScores.AsNoTracking().ToDictionaryAsync(c => c.SupporterId);
+        var upliftById = await context.MlDonorUpliftScores.AsNoTracking().ToDictionaryAsync(u => u.SupporterId);
+        var supporterIds = churnById.Keys.Union(upliftById.Keys).Distinct().ToList();
+
+        var names = await context.Supporters
+            .AsNoTracking()
+            .Where(s => supporterIds.Contains(s.SupporterId))
+            .ToDictionaryAsync(s => s.SupporterId, s => s.DisplayName);
+
+        var donorPipeline = supporterIds
+            .Select(id =>
+            {
+                churnById.TryGetValue(id, out var churn);
+                upliftById.TryGetValue(id, out var uplift);
+                return new MlDonorPipelineItemDto
+                {
+                    SupporterId = id,
+                    DonorName = names.GetValueOrDefault(id) ?? $"Supporter {id}",
+                    ChurnScore = churn?.ChurnScore,
+                    ChurnTier = churn?.ChurnTier,
+                    ChurnModelVersion = churn?.ModelVersion,
+                    ChurnScoredAtUtc = churn != null ? churn.ScoredAtUtc.ToString("O") : null,
+                    DonorUpliftScore = uplift?.UpliftScore,
+                    UpliftModelVersion = uplift?.ModelVersion,
+                    UpliftScoredAtUtc = uplift != null ? uplift.ScoredAtUtc.ToString("O") : null,
+                };
+            })
+            .OrderByDescending(row => row.ChurnScore ?? 0m)
+            .ToList();
 
             var socialScores = await (
                 from score in context.MlSocialPostScores.AsNoTracking()
@@ -79,6 +108,16 @@ public class MlInsightsController(
                 .Concat(readiness.Select(r => DateTime.TryParse(r.ScoredAtUtc, out var dt) ? dt : DateTime.MinValue))
                 .DefaultIfEmpty(DateTime.MinValue)
                 .Max();
+        var latest = donorPipeline
+            .SelectMany(row => new[]
+            {
+                DateTime.TryParse(row.ChurnScoredAtUtc, out var c) ? c : DateTime.MinValue,
+                DateTime.TryParse(row.UpliftScoredAtUtc, out var u) ? u : DateTime.MinValue,
+            })
+            .Concat(socialScores.Select(r => DateTime.TryParse(r.ScoredAtUtc, out var dt) ? dt : DateTime.MinValue))
+            .Concat(readiness.Select(r => DateTime.TryParse(r.ScoredAtUtc, out var dt) ? dt : DateTime.MinValue))
+            .DefaultIfEmpty(DateTime.MinValue)
+            .Max();
 
             return Ok(new MlInsightsResponse
             {
@@ -106,6 +145,13 @@ public class MlInsightsController(
                 detail: "See server logs for details.",
                 statusCode: StatusCodes.Status500InternalServerError);
         }
+        return Ok(new MlInsightsResponse
+        {
+            LastRefreshedAtUtc = latest == DateTime.MinValue ? null : latest.ToString("O"),
+            DonorPipeline = donorPipeline,
+            SocialPostScores = socialScores,
+            ResidentReadiness = readiness
+        });
     }
 
     [HttpPost("refresh")]
