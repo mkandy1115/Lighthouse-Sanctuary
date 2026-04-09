@@ -653,7 +653,7 @@ export default function DonorPortalPage() {
 
       <header className="h-14 bg-white border-b border-brand-border flex items-center justify-between px-4 sm:px-6 z-20 sticky top-0">
         <Link to="/" className="flex items-center gap-2">
-          <span className="text-lg">🕊️</span>
+          <img src="/imari-icon.svg" alt="" className="h-8 w-8" />
           <div className="flex flex-col leading-none">
             <span className="font-semibold text-brand-charcoal text-sm tracking-tight">Imari</span>
             <span className="text-[9px] text-brand-muted tracking-widest uppercase">Safe Haven</span>

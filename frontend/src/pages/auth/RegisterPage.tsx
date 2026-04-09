@@ -2,7 +2,7 @@ import { useContext, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { RoleContext } from '@/App'
 import { registerDonor, saveAuthSession } from '@/lib/auth'
-import { looksUnsafe, sanitizeText, validateEmail, validatePasswordMeetsPolicy } from '@/lib/validation'
+import { looksUnsafe, validateEmail, validatePasswordMeetsPolicy } from '@/lib/validation'
 import { LoaderCircle } from 'lucide-react'
 
 export default function RegisterPage() {
