@@ -21,10 +21,19 @@ public class MlInsightsController(
     {
         try
         {
-            var dbName = await context.Database.SqlQueryRaw<string>("select current_database()").SingleAsync();
-            var dbUser = await context.Database.SqlQueryRaw<string>("select current_user").SingleAsync();
-            var searchPath = await context.Database.SqlQueryRaw<string>("select current_setting('search_path')").SingleAsync();
-            logger.LogInformation("MlInsights query context: db={DbName}, user={DbUser}, search_path={SearchPath}", dbName, dbUser, searchPath);
+            try
+            {
+                // EF primitive SQL projection expects a single scalar column; alias as Value for compatibility.
+                var dbName = await context.Database.SqlQueryRaw<string>("select current_database() as \"Value\"").SingleAsync();
+                var dbUser = await context.Database.SqlQueryRaw<string>("select current_user as \"Value\"").SingleAsync();
+                var searchPath = await context.Database.SqlQueryRaw<string>("select current_setting('search_path') as \"Value\"").SingleAsync();
+                logger.LogInformation("MlInsights query context: db={DbName}, user={DbUser}, search_path={SearchPath}", dbName, dbUser, searchPath);
+            }
+            catch (Exception diagEx)
+            {
+                // Never block the endpoint due to optional diagnostic logging.
+                logger.LogWarning(diagEx, "MlInsights diagnostic context query failed; continuing.");
+            }
 
             var churnById = await context.MlDonorChurnScores
                 .AsNoTracking()
