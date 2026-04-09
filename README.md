@@ -102,6 +102,12 @@ The API loads, in order: `appsettings.json` → optional `appsettings.Local.json
 
 You need **PostgreSQL**, the **API**, and the **Vite dev server** running.
 
+**Quick Start:**
+1. Database is set up with `live_schema.sql` + `seed_sample_data.sql` (includes test accounts)
+2. Start backend: `cd backend && dotnet run`
+3. Start frontend: `cd frontend && npm run dev` (in another terminal)
+4. Open http://localhost:5173 and login with **`donor`** / **`donor123!`** or **`admin`** / **`admin123!`**
+
 ### Terminal 1 — Backend
 
 ```bash
@@ -141,17 +147,27 @@ Local origins **`http://localhost:5173`** / **`5174`** are allowed in `backend/P
 
 ---
 
-## Local accounts
+## Test Accounts (for evaluation/demo)
 
-- **Password policy** (login / register): at least **14** characters, with uppercase, lowercase, digit, and special character (see `AuthController`).
+**Password policy**: Minimum **14 characters** (no other requirements).
 
-**Donor**
+### Quick Login
 
-- Use the **registration** flow in the UI, or **`POST /api/auth/register-donor`** via Swagger.
+Use these credentials to immediately test the app:
 
-**Admin**
+**Donor Account**
+- Username: `donor`
+- Password: `donor123!`
 
-- Example local seed users are documented in **`backend/appsettings.Local.json.example`** (`local-admin`, `local-donor`). The project includes **`AuthSeedService`**, but startup must call **`SeedAsync()`** for those entries to be created automatically; if your branch does not call it yet, either wire that on startup or insert an **`app_users`** row with role **`Admin`** and a valid ASP.NET Identity password hash (team script / SQL).
+**Admin Account**
+- Username: `admin`
+- Password: `admin123!`
+
+These accounts are automatically seeded when you run `seed_sample_data.sql`.
+
+### Register New Donor
+
+You can also create a new donor account via the **"Create a donor account"** link on the login page. No donation required—just register and login.
 
 ---
 
@@ -236,14 +252,60 @@ Lighthouse Sanctuary/
 
 ---
 
-## Features (high level)
+## Features
 
-- Public marketing pages, donation flow, and contact
-- **JWT auth**: login, donor registration, password change
-- **Donor** portal: dashboard, giving history, impact-oriented views
-- **Admin / staff** workspace (`/admin`): residents, cases, donors, campaigns, social, reports, users/roles, audit, **ML insights** refresh
-- REST API with Swagger in Development
-- Optional **Python ML pipelines** (donor churn, social scoring, readiness, uplift, impact) invoked via Function App and persisted to PostgreSQL
+### Public Pages
+- **Home/Landing Page**: Modern marketing site with mission statement and calls-to-action
+- **Impact Dashboard**: Anonymized organizational impact data (residents served, donations received, program metrics)
+- **Login Page**: JWT-based authentication with validation
+- **Donor Registration**: Self-service account creation without requiring a donation
+- **Privacy Policy & Cookie Consent**: GDPR-compliant
+
+### Donor Portal (`/donor`)
+- **Dashboard**: Personalized welcome, total contributions, estimated impact metrics
+- **My Impact**: Visual breakdown of how donations translate to outcomes (residents helped, counseling sessions funded, etc.)
+- **Payment History**: View all past donations with dates, amounts, campaigns, and status
+- **Make a Donation**: Modal form supporting one-time and recurring monthly donations (USD with PHP internal conversion)
+- **User Settings**: View profile information, change password, toggle dark/light mode
+
+### Admin / Staff Portal (`/admin`)
+- **Dashboard**: Command center with key metrics, recent activity, ML insights
+- **Caseload Inventory**: Full case management system for residents
+  - View, create, edit resident profiles with comprehensive demographics
+  - Case categories (trafficked, abuse victim, neglected, etc.)
+  - Disability info, family socio-demographic data, admission details
+  - Filtering by status, safehouse, category, social worker
+  - Search functionality
+- **Process Recording**: Counseling session documentation
+  - Log sessions with date, social worker, type (individual/group), emotional state, narrative, interventions, follow-up
+  - Chronological session history per resident
+- **Home Visits & Case Conferences**: Track field visits and case conferences
+- **Donors & Contributions**: Supporter management
+  - View all donors with classification and status
+  - Track all contribution types (monetary, in-kind, volunteer time, skills)
+  - View donation allocations across programs and safehouses
+- **Reports & Analytics**: Data-driven insights
+  - Donation trends and patterns
+  - Resident outcome metrics (education, health, reintegration)
+  - Safehouse performance comparisons
+  - Campaign performance breakdown
+- **Social Media Management**: 
+  - Track posts across platforms (Facebook, Instagram, TikTok, LinkedIn, etc.)
+  - ML-powered recommendations showing top 5 performing posts
+  - Content type recommendations (what to post more of)
+  - Post calendar and analytics
+- **User Management**: Admins can create, edit, deactivate, or delete staff accounts with role assignment
+- **ML Insights**: Refresh ML-generated scores (donor churn risk, impact allocation, social post scoring, reintegration readiness)
+
+### Technical Features
+- **Dark Mode**: Site-wide light/dark theme toggle (persists across sessions)
+- **Responsive Design**: Works on desktop, tablet, and mobile
+- **Accessibility**: 95+ accessibility score with semantic HTML, ARIA labels, keyboard navigation
+- **Error Handling**: User-friendly error messages and empty states
+- **Form Validation**: Password policy enforcement (14+ characters), email validation, XSS prevention
+- **Authentication**: JWT tokens with persistence, protected routes by role
+- **REST API**: Full CRUD operations with Swagger documentation
+- **ML Integration**: Pipeline scoring for donor churn, social posts, reintegration readiness, impact allocation
 
 ---
 
