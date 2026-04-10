@@ -285,7 +285,7 @@ function PersonalImpact({ data }: ImpactViewProps) {
       </div>
 
       <div className="bg-white rounded-xl border border-brand-border p-6">
-        <h3 className="font-semibold text-brand-charcoal mb-1">Pipeline 5 · Predicted Impact Allocation</h3>
+        <h3 className="font-semibold text-brand-charcoal mb-1">Predicted Impact Allocation</h3>
         <p className="text-brand-muted text-sm mb-5">
           Prediction of how your giving is likely to translate into program impact based on historical allocation behavior.
         </p>
@@ -309,7 +309,7 @@ function PersonalImpact({ data }: ImpactViewProps) {
             </div>
           </div>
         ) : (
-          <p className="text-sm text-brand-muted">No Pipeline 5 prediction is available yet. Ask staff to refresh ML scores.</p>
+          <p className="text-sm text-brand-muted">No prediction is available yet. Ask staff to refresh ML scores.</p>
         )}
       </div>
 

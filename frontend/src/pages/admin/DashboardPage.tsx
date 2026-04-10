@@ -482,9 +482,9 @@ export default function AdminDashboardPage() {
 
       <div className="space-y-6">
         <div className="rounded-xl border border-brand-border bg-white p-6">
-          <h3 className="font-semibold text-brand-charcoal">Pipelines 1 &amp; 4 · Donor churn risk and uplift</h3>
+          <h3 className="font-semibold text-brand-charcoal">Donor churn risk and uplift</h3>
           <p className="mt-1 text-xs text-brand-muted">
-            Pipeline 1: likelihood a donor will not give again within a year. Pipeline 4: donor-level uplift signal
+            likelihood a donor will not give again within a year. donor-level uplift signal
             (also blended into post-level scores downstream).
           </p>
           <div className="mt-4 max-h-80 overflow-auto">
@@ -540,7 +540,7 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="rounded-xl border border-brand-border bg-white p-6">
-          <h3 className="font-semibold text-brand-charcoal">Pipeline 2 · Social post scoring</h3>
+          <h3 className="font-semibold text-brand-charcoal">Social post scoring</h3>
           <p className="mt-1 text-xs text-brand-muted">
             Post-level churn influence and uplift (uplift may incorporate a donor-level blend after refresh).
           </p>
@@ -590,7 +590,7 @@ export default function AdminDashboardPage() {
       </div>
 
       <div className="rounded-xl border border-brand-border bg-white p-6">
-        <h3 className="font-semibold text-brand-charcoal">Pipeline 3 · Participant Reintegration Readiness</h3>
+        <h3 className="font-semibold text-brand-charcoal">Participant Reintegration Readiness</h3>
         <p className="mt-1 text-xs text-brand-muted">
           Predicted readiness to reintegrate based on current risk, education, attendance, and wellbeing signals.
         </p>
