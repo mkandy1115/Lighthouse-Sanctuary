@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Modal from '@/components/ui/Modal'
+import { getStoredAuthUser } from '@/lib/auth'
 import {
   createResident,
   deleteResident,
@@ -103,12 +104,14 @@ function emptyEditForm() {
 }
 
 export default function CaseListPage() {
+  const isAdmin = getStoredAuthUser()?.role === 'Admin'
   const [residents, setResidents] = useState<StaffResidentListItem[]>([])
   const [safehouses, setSafehouses] = useState<SafehouseListItem[]>([])
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [safehouseFilter, setSafehouseFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [riskFilter, setRiskFilter] = useState('all')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -155,9 +158,10 @@ export default function CaseListPage() {
       const matchesStatus = statusFilter === 'all' || resident.caseStatus === statusFilter
       const matchesSafehouse = safehouseFilter === 'all' || resident.safehouseName === safehouseFilter
       const matchesCategory = categoryFilter === 'all' || resident.caseCategory === categoryFilter
-      return matchesSearch && matchesStatus && matchesSafehouse && matchesCategory
+      const matchesRisk = riskFilter === 'all' || resident.currentRiskLevel === riskFilter
+      return matchesSearch && matchesStatus && matchesSafehouse && matchesCategory && matchesRisk
     })
-  }, [categoryFilter, residents, safehouseFilter, search, statusFilter])
+  }, [categoryFilter, residents, riskFilter, safehouseFilter, search, statusFilter])
 
   const safehouseNames = Array.from(new Set(residents.map((resident) => resident.safehouseName))).sort()
   const categories = Array.from(new Set(residents.map((resident) => resident.caseCategory).filter(Boolean))) as string[]
@@ -727,6 +731,20 @@ export default function CaseListPage() {
             </option>
           ))}
         </select>
+        {isAdmin && (
+          <select
+            value={riskFilter}
+            onChange={(e) => setRiskFilter(e.target.value)}
+            className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
+          >
+            <option value="all">All risks</option>
+            {RISK_LEVELS.map((risk) => (
+              <option key={risk} value={risk}>
+                {risk}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       {error && (
