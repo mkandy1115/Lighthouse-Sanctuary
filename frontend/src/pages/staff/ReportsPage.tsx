@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { getReportsSummary, type ReportsSummaryResponse } from '@/lib/staff'
 import { formatPercent, formatUsdFromPhp } from '@/lib/formatters'
+import { useTableSort } from '@/lib/tableSort'
 
 export default function ReportsPage() {
   const [data, setData] = useState<ReportsSummaryResponse | null>(null)
@@ -16,6 +17,40 @@ export default function ReportsPage() {
     }
     load()
   }, [])
+
+  const donationRows = data?.donationsByMonth ?? []
+  const safehouseRows = data?.safehouseComparisons ?? []
+  const outcomeRows = useMemo(() => (data?.residentOutcomeMetrics ?? []).slice(0, 12), [data?.residentOutcomeMetrics])
+  const donationSort = useTableSort<(typeof donationRows)[number], 'month' | 'raised' | 'donors'>(
+    donationRows,
+    (row, key) => row[key],
+  )
+  const safehouseSort = useTableSort<(typeof safehouseRows)[number], 'safehouse' | 'education' | 'health' | 'visits' | 'recordings'>(
+    safehouseRows,
+    (row, key) => {
+      switch (key) {
+        case 'safehouse': return Number(row.safehouseId)
+        case 'education': return Number(row.avgEducationProgress ?? 0)
+        case 'health': return Number(row.avgHealthScore ?? 0)
+        case 'visits': return Number(row.totalHomeVisitations ?? 0)
+        case 'recordings': return Number(row.totalProcessRecordings ?? 0)
+        default: return ''
+      }
+    },
+  )
+  const outcomeSort = useTableSort<(typeof outcomeRows)[number], 'month' | 'activeResidents' | 'education' | 'health' | 'incidents'>(
+    outcomeRows,
+    (row, key) => {
+      switch (key) {
+        case 'month': return String(row.monthStart)
+        case 'activeResidents': return Number(row.activeResidents ?? 0)
+        case 'education': return Number(row.avgEducationProgress ?? 0)
+        case 'health': return Number(row.avgHealthScore ?? 0)
+        case 'incidents': return Number(row.incidentCount ?? 0)
+        default: return ''
+      }
+    },
+  )
 
   if (error) {
     return <div className="py-16 text-center text-rose-700">{error}</div>
@@ -58,13 +93,13 @@ export default function ReportsPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-border">
-              {['Month', 'Raised', 'Distinct Donors'].map((h) => (
-                <th key={h} className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">{h}</th>
-              ))}
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => donationSort.toggleSort('month')} className="hover:text-brand-charcoal">Month{donationSort.indicator('month')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => donationSort.toggleSort('raised')} className="hover:text-brand-charcoal">Raised{donationSort.indicator('raised')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => donationSort.toggleSort('donors')} className="hover:text-brand-charcoal">Distinct Donors{donationSort.indicator('donors')}</button></th>
             </tr>
           </thead>
           <tbody>
-            {data.donationsByMonth.map((row) => (
+            {donationSort.sortedRows.map((row) => (
               <tr key={row.month} className="border-b border-brand-border/50">
                 <td className="px-4 py-3 text-brand-charcoal">{row.month}</td>
                 <td className="px-4 py-3 font-semibold text-brand-charcoal">{formatUsdFromPhp(row.raised)}</td>
@@ -83,13 +118,15 @@ export default function ReportsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-brand-border">
-                {['Safehouse', 'Avg Education', 'Avg Health', 'Home Visits', 'Process Recordings'].map((h) => (
-                  <th key={h} className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">{h}</th>
-                ))}
+                <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => safehouseSort.toggleSort('safehouse')} className="hover:text-brand-charcoal">Safehouse{safehouseSort.indicator('safehouse')}</button></th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => safehouseSort.toggleSort('education')} className="hover:text-brand-charcoal">Avg Education{safehouseSort.indicator('education')}</button></th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => safehouseSort.toggleSort('health')} className="hover:text-brand-charcoal">Avg Health{safehouseSort.indicator('health')}</button></th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => safehouseSort.toggleSort('visits')} className="hover:text-brand-charcoal">Home Visits{safehouseSort.indicator('visits')}</button></th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => safehouseSort.toggleSort('recordings')} className="hover:text-brand-charcoal">Process Recordings{safehouseSort.indicator('recordings')}</button></th>
               </tr>
             </thead>
             <tbody>
-              {data.safehouseComparisons.map((row, index) => (
+              {safehouseSort.sortedRows.map((row, index) => (
                 <tr key={index} className="border-b border-brand-border/50">
                   <td className="px-4 py-3 text-brand-charcoal">Safehouse #{String(row.safehouseId)}</td>
                   <td className="px-4 py-3 text-brand-muted">{Number(row.avgEducationProgress ?? 0).toFixed(1)}%</td>
@@ -109,13 +146,15 @@ export default function ReportsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-brand-border">
-                {['Month Start', 'Active Residents', 'Avg Education', 'Avg Health', 'Incidents'].map((h) => (
-                  <th key={h} className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">{h}</th>
-                ))}
+                <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => outcomeSort.toggleSort('month')} className="hover:text-brand-charcoal">Month Start{outcomeSort.indicator('month')}</button></th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => outcomeSort.toggleSort('activeResidents')} className="hover:text-brand-charcoal">Active Residents{outcomeSort.indicator('activeResidents')}</button></th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => outcomeSort.toggleSort('education')} className="hover:text-brand-charcoal">Avg Education{outcomeSort.indicator('education')}</button></th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => outcomeSort.toggleSort('health')} className="hover:text-brand-charcoal">Avg Health{outcomeSort.indicator('health')}</button></th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => outcomeSort.toggleSort('incidents')} className="hover:text-brand-charcoal">Incidents{outcomeSort.indicator('incidents')}</button></th>
               </tr>
             </thead>
             <tbody>
-              {data.residentOutcomeMetrics.slice(0, 12).map((row, index) => (
+              {outcomeSort.sortedRows.map((row, index) => (
                 <tr key={index} className="border-b border-brand-border/50">
                   <td className="px-4 py-3 text-brand-charcoal">{String(row.monthStart).slice(0, 10)}</td>
                   <td className="px-4 py-3 text-brand-muted">{String(row.activeResidents)}</td>

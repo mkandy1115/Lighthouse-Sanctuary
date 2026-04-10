@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatNumber, formatPercent, formatUsdFromPhp, formatDate } from '@/lib/formatters'
+import { useTableSort } from '@/lib/tableSort'
 import {
   getAdminDashboard,
   getMlInsights,
@@ -211,6 +212,47 @@ export default function AdminDashboardPage() {
       setRefreshingMl(false)
     }
   }
+
+  type DonorPipelineRow = MlInsightsResponse['donorPipeline'][number]
+  type SocialPostRow = MlInsightsResponse['socialPostScores'][number]
+  type ReadinessRow = MlInsightsResponse['residentReadiness'][number]
+  const donorPipelineRows = derived?.ml.donorPipeline ?? []
+  const socialRows = derived?.ml.socialPostScores ?? []
+  const readinessRows = derived?.ml.residentReadiness ?? []
+  const donorPipelineSort = useTableSort<DonorPipelineRow, 'donor' | 'churn' | 'tier' | 'uplift'>(
+    donorPipelineRows,
+    (row, key) => {
+      switch (key) {
+        case 'donor': return row.donorName
+        case 'churn': return row.churnScore ?? -1
+        case 'tier': return row.churnTier ?? ''
+        case 'uplift': return row.donorUpliftScore ?? -1
+        default: return ''
+      }
+    },
+  )
+  const socialSort = useTableSort<SocialPostRow, 'post' | 'churn' | 'uplift'>(
+    socialRows,
+    (row, key) => {
+      switch (key) {
+        case 'post': return `${row.platform} ${row.postType ?? ''} ${row.postId}`
+        case 'churn': return row.churnScore
+        case 'uplift': return row.upliftScore
+        default: return ''
+      }
+    },
+  )
+  const readinessSort = useTableSort<ReadinessRow, 'participant' | 'readiness' | 'tier'>(
+    readinessRows,
+    (row, key) => {
+      switch (key) {
+        case 'participant': return `${row.caseControlNo} ${row.internalCode}`
+        case 'readiness': return row.readinessScore
+        case 'tier': return row.readinessTier
+        default: return ''
+      }
+    },
+  )
 
   if (loadError) {
     return <div className="py-16 text-center text-rose-700">{loadError}</div>
@@ -449,14 +491,30 @@ export default function AdminDashboardPage() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-brand-border text-left text-brand-muted">
-                  <th className="pb-2">Donor</th>
-                  <th className="pb-2">Churn (P1)</th>
-                  <th className="pb-2">Tier</th>
-                  <th className="pb-2">Uplift (P4)</th>
+                  <th className="pb-2">
+                    <button type="button" onClick={() => donorPipelineSort.toggleSort('donor')} className="hover:text-brand-charcoal">
+                      Donor{donorPipelineSort.indicator('donor')}
+                    </button>
+                  </th>
+                  <th className="pb-2">
+                    <button type="button" onClick={() => donorPipelineSort.toggleSort('churn')} className="hover:text-brand-charcoal">
+                      Churn (P1){donorPipelineSort.indicator('churn')}
+                    </button>
+                  </th>
+                  <th className="pb-2">
+                    <button type="button" onClick={() => donorPipelineSort.toggleSort('tier')} className="hover:text-brand-charcoal">
+                      Tier{donorPipelineSort.indicator('tier')}
+                    </button>
+                  </th>
+                  <th className="pb-2">
+                    <button type="button" onClick={() => donorPipelineSort.toggleSort('uplift')} className="hover:text-brand-charcoal">
+                      Uplift (P4){donorPipelineSort.indicator('uplift')}
+                    </button>
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {derived.ml.donorPipeline.map((row) => (
+                {donorPipelineSort.sortedRows.map((row) => (
                   <tr key={row.supporterId} className="border-b border-brand-border/70">
                     <td className="py-2 pr-2 text-brand-charcoal">{row.donorName}</td>
                     <td className="py-2 pr-2 text-brand-charcoal">
@@ -490,13 +548,25 @@ export default function AdminDashboardPage() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-brand-border text-left text-brand-muted">
-                  <th className="pb-2">Post</th>
-                  <th className="pb-2">Churn</th>
-                  <th className="pb-2">Uplift</th>
+                  <th className="pb-2">
+                    <button type="button" onClick={() => socialSort.toggleSort('post')} className="hover:text-brand-charcoal">
+                      Post{socialSort.indicator('post')}
+                    </button>
+                  </th>
+                  <th className="pb-2">
+                    <button type="button" onClick={() => socialSort.toggleSort('churn')} className="hover:text-brand-charcoal">
+                      Churn{socialSort.indicator('churn')}
+                    </button>
+                  </th>
+                  <th className="pb-2">
+                    <button type="button" onClick={() => socialSort.toggleSort('uplift')} className="hover:text-brand-charcoal">
+                      Uplift{socialSort.indicator('uplift')}
+                    </button>
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {derived.ml.socialPostScores.map((row) => (
+                {socialSort.sortedRows.map((row) => (
                   <tr key={row.postId} className="border-b border-brand-border/70">
                     <td className="py-2 pr-2 text-brand-charcoal">
                       {row.platform} · {row.postType ?? 'Post'} #{row.postId}
@@ -528,13 +598,25 @@ export default function AdminDashboardPage() {
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-brand-border text-left text-brand-muted">
-                <th className="pb-2">Participant</th>
-                <th className="pb-2">Readiness</th>
-                <th className="pb-2">Tier</th>
+                <th className="pb-2">
+                  <button type="button" onClick={() => readinessSort.toggleSort('participant')} className="hover:text-brand-charcoal">
+                    Participant{readinessSort.indicator('participant')}
+                  </button>
+                </th>
+                <th className="pb-2">
+                  <button type="button" onClick={() => readinessSort.toggleSort('readiness')} className="hover:text-brand-charcoal">
+                    Readiness{readinessSort.indicator('readiness')}
+                  </button>
+                </th>
+                <th className="pb-2">
+                  <button type="button" onClick={() => readinessSort.toggleSort('tier')} className="hover:text-brand-charcoal">
+                    Tier{readinessSort.indicator('tier')}
+                  </button>
+                </th>
               </tr>
             </thead>
             <tbody>
-              {derived.ml.residentReadiness.map((row) => (
+              {readinessSort.sortedRows.map((row) => (
                 <tr key={row.residentId} className="border-b border-brand-border/70">
                   <td className="py-2 pr-2 text-brand-charcoal">{row.caseControlNo} ({row.internalCode})</td>
                   <td className="py-2 pr-2 text-brand-charcoal">{formatPercent(row.readinessScore * 100, 1)}</td>

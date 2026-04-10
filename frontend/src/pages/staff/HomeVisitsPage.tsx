@@ -10,6 +10,7 @@ import {
   type StaffResidentListItem,
 } from '@/lib/staff'
 import { formatDate } from '@/lib/formatters'
+import { useTableSort } from '@/lib/tableSort'
 import { looksUnsafe, sanitizeText } from '@/lib/validation'
 
 function emptyForm() {
@@ -58,6 +59,20 @@ export default function HomeVisitsPage() {
     if (filter === 'all') return visits
     return visits.filter((visit) => (visit.followUpNeeded ? 'needs-follow-up' : 'completed') === filter)
   }, [filter, visits])
+  const visitsSort = useTableSort<HomeVisitationItem, 'case' | 'visitDate' | 'type' | 'socialWorker' | 'outcome' | 'followUp'>(
+    filtered,
+    (visit, key) => {
+      switch (key) {
+        case 'case': return visit.residentCaseControlNo ?? ''
+        case 'visitDate': return visit.visitDate
+        case 'type': return visit.visitType ?? ''
+        case 'socialWorker': return visit.socialWorker ?? ''
+        case 'outcome': return visit.visitOutcome ?? ''
+        case 'followUp': return visit.followUpNeeded ? 1 : 0
+        default: return ''
+      }
+    },
+  )
 
   function openCreate() {
     setEditingId(null)
@@ -241,13 +256,17 @@ export default function HomeVisitsPage() {
         <table className="w-full text-sm min-w-[720px]">
           <thead>
             <tr className="bg-brand-stone border-b border-brand-border">
-              {['Case', 'Visit Date', 'Type', 'Social Worker', 'Outcome', 'Follow-up', 'Actions'].map((h) => (
-                <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider">{h}</th>
-              ))}
+              <th className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => visitsSort.toggleSort('case')} className="hover:text-brand-charcoal">Case{visitsSort.indicator('case')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => visitsSort.toggleSort('visitDate')} className="hover:text-brand-charcoal">Visit Date{visitsSort.indicator('visitDate')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => visitsSort.toggleSort('type')} className="hover:text-brand-charcoal">Type{visitsSort.indicator('type')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => visitsSort.toggleSort('socialWorker')} className="hover:text-brand-charcoal">Social Worker{visitsSort.indicator('socialWorker')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => visitsSort.toggleSort('outcome')} className="hover:text-brand-charcoal">Outcome{visitsSort.indicator('outcome')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => visitsSort.toggleSort('followUp')} className="hover:text-brand-charcoal">Follow-up{visitsSort.indicator('followUp')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {!isLoading && filtered.map((visit) => (
+            {!isLoading && visitsSort.sortedRows.map((visit) => (
               <tr key={visit.visitationId} className="hover:bg-brand-cream transition-colors border-b border-brand-border">
                 <td className="px-4 py-3.5 font-mono text-xs text-brand-muted">{visit.residentCaseControlNo ?? '—'}</td>
                 <td className="px-4 py-3.5 text-brand-muted">{formatDate(visit.visitDate)}</td>

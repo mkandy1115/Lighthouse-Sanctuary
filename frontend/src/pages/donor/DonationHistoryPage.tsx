@@ -1,5 +1,6 @@
 import { formatCurrency, formatDate } from '@/lib/formatters'
 import { Download } from 'lucide-react'
+import { useTableSort } from '@/lib/tableSort'
 
 const donations = [
   { id: '1', date: '2025-01-10', amount: 25000, campaign: 'Emergency Shelter Fund 2025', method: 'GCash', receiptUrl: '#' },
@@ -8,6 +9,11 @@ const donations = [
 ]
 
 export default function DonationHistoryPage() {
+  const donationSort = useTableSort<(typeof donations)[number], 'date' | 'campaign' | 'amount' | 'method'>(
+    donations,
+    (row, key) => row[key],
+  )
+
   return (
     <div className="animate-fade-in">
       <div className="mb-6">
@@ -19,13 +25,15 @@ export default function DonationHistoryPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-border">
-              {['Date', 'Campaign', 'Amount', 'Method', 'Receipt'].map((h) => (
-                <th key={h} className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">{h}</th>
-              ))}
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => donationSort.toggleSort('date')} className="hover:text-brand-charcoal">Date{donationSort.indicator('date')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => donationSort.toggleSort('campaign')} className="hover:text-brand-charcoal">Campaign{donationSort.indicator('campaign')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => donationSort.toggleSort('amount')} className="hover:text-brand-charcoal">Amount{donationSort.indicator('amount')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => donationSort.toggleSort('method')} className="hover:text-brand-charcoal">Method{donationSort.indicator('method')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">Receipt</th>
             </tr>
           </thead>
           <tbody>
-            {donations.map((d) => (
+            {donationSort.sortedRows.map((d) => (
               <tr key={d.id} className="border-b border-brand-border/50 hover:bg-white transition-colors">
                 <td className="px-4 py-3 text-brand-muted">{formatDate(d.date)}</td>
                 <td className="px-4 py-3 text-brand-charcoal">{d.campaign}</td>

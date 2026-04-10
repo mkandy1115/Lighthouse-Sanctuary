@@ -1,4 +1,5 @@
 import { formatDate } from '@/lib/formatters'
+import { useTableSort } from '@/lib/tableSort'
 
 const auditEvents = [
   { id: '1', user: 'ana.reyes', action: 'VIEW_SENSITIVE_DATA', resource: 'Case #0421 — dateOfBirth', resourceType: 'case-field', timestamp: '2025-01-15T09:14:22Z', ip: '192.168.1.42' },
@@ -17,6 +18,11 @@ const actionColors: Record<string, string> = {
 }
 
 export default function AdminAuditPage() {
+  const auditSort = useTableSort<(typeof auditEvents)[number], 'timestamp' | 'user' | 'action' | 'resource' | 'ip'>(
+    auditEvents,
+    (row, key) => row[key],
+  )
+
   return (
     <div className="animate-fade-in">
       <div className="mb-6">
@@ -28,13 +34,35 @@ export default function AdminAuditPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-border">
-              {['Timestamp', 'User', 'Action', 'Resource', 'IP'].map((h) => (
-                <th key={h} className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">{h}</th>
-              ))}
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">
+                <button type="button" onClick={() => auditSort.toggleSort('timestamp')} className="hover:text-brand-charcoal">
+                  Timestamp{auditSort.indicator('timestamp')}
+                </button>
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">
+                <button type="button" onClick={() => auditSort.toggleSort('user')} className="hover:text-brand-charcoal">
+                  User{auditSort.indicator('user')}
+                </button>
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">
+                <button type="button" onClick={() => auditSort.toggleSort('action')} className="hover:text-brand-charcoal">
+                  Action{auditSort.indicator('action')}
+                </button>
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">
+                <button type="button" onClick={() => auditSort.toggleSort('resource')} className="hover:text-brand-charcoal">
+                  Resource{auditSort.indicator('resource')}
+                </button>
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">
+                <button type="button" onClick={() => auditSort.toggleSort('ip')} className="hover:text-brand-charcoal">
+                  IP{auditSort.indicator('ip')}
+                </button>
+              </th>
             </tr>
           </thead>
           <tbody>
-            {auditEvents.map((e) => (
+            {auditSort.sortedRows.map((e) => (
               <tr key={e.id} className="border-b border-brand-border/50 hover:bg-white transition-colors">
                 <td className="px-4 py-3 text-xs text-brand-muted font-mono whitespace-nowrap">
                   {formatDate(e.timestamp, 'relative')}

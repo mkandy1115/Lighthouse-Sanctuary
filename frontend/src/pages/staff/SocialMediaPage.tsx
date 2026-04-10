@@ -12,6 +12,7 @@ import {
   type SocialMediaPostDto,
 } from '@/lib/staff'
 import { formatDate } from '@/lib/formatters'
+import { useTableSort } from '@/lib/tableSort'
 import { looksUnsafe, sanitizeText } from '@/lib/validation'
 
 const platformColors: Record<string, string> = {
@@ -108,6 +109,18 @@ export default function SocialMediaPage() {
       }))
       .sort((a, b) => b.avgUplift - a.avgUplift)
   }, [mlScores])
+  const mlSort = useTableSort<MlSocialPostScoreItem, 'post' | 'churn' | 'uplift' | 'model'>(
+    mlScores,
+    (row, key) => {
+      switch (key) {
+        case 'post': return `${row.platform} ${row.postId}`
+        case 'churn': return row.churnScore
+        case 'uplift': return row.upliftScore
+        case 'model': return row.modelVersion
+        default: return ''
+      }
+    },
+  )
 
   function openCreate() {
     setShowDemoMessage(true)
@@ -449,11 +462,10 @@ export default function SocialMediaPage() {
             <table className="w-full text-sm min-w-[520px]">
               <thead>
                 <tr className="bg-brand-stone border-b border-brand-border">
-                  {['Post', 'Churn score', 'Uplift score', 'Model'].map((h) => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider">
-                      {h}
-                    </th>
-                  ))}
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => mlSort.toggleSort('post')} className="hover:text-brand-charcoal">Post{mlSort.indicator('post')}</button></th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => mlSort.toggleSort('churn')} className="hover:text-brand-charcoal">Churn score{mlSort.indicator('churn')}</button></th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => mlSort.toggleSort('uplift')} className="hover:text-brand-charcoal">Uplift score{mlSort.indicator('uplift')}</button></th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => mlSort.toggleSort('model')} className="hover:text-brand-charcoal">Model{mlSort.indicator('model')}</button></th>
                 </tr>
               </thead>
               <tbody>
@@ -464,7 +476,7 @@ export default function SocialMediaPage() {
                     </td>
                   </tr>
                 ) : (
-                  mlScores.map((row) => (
+                  mlSort.sortedRows.map((row) => (
                     <tr key={row.postId} className="border-b border-brand-border">
                       <td className="px-4 py-3 text-brand-charcoal">
                         {row.platform} #{row.postId}

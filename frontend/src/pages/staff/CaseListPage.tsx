@@ -14,6 +14,7 @@ import {
   type UpdateResidentPayload,
 } from '@/lib/staff'
 import { formatDate } from '@/lib/formatters'
+import { useTableSort } from '@/lib/tableSort'
 
 const CASE_CATEGORIES = [
   'Neglected',
@@ -160,6 +161,25 @@ export default function CaseListPage() {
       return matchesSearch && matchesStatus && matchesSafehouse && matchesRisk
     })
   }, [residents, riskFilter, safehouseFilter, search, statusFilter])
+  const residentsSort = useTableSort<
+    StaffResidentListItem,
+    'case' | 'internalCode' | 'safehouse' | 'category' | 'risk' | 'status' | 'caseworker' | 'admission'
+  >(
+    filtered,
+    (resident, key) => {
+      switch (key) {
+        case 'case': return resident.caseControlNo
+        case 'internalCode': return resident.internalCode
+        case 'safehouse': return resident.safehouseName
+        case 'category': return resident.caseCategory ?? ''
+        case 'risk': return resident.currentRiskLevel ?? ''
+        case 'status': return resident.caseStatus
+        case 'caseworker': return resident.assignedSocialWorker ?? ''
+        case 'admission': return resident.dateOfAdmission
+        default: return ''
+      }
+    },
+  )
 
   const safehouseNames = Array.from(new Set(residents.map((resident) => resident.safehouseName))).sort()
   function openCreateModal() {
@@ -741,21 +761,20 @@ export default function CaseListPage() {
         <table className="w-full text-sm min-w-[880px]">
           <thead>
             <tr className="bg-brand-stone border-b border-brand-border">
-              {['Case', 'Internal Code', 'Safehouse', 'Category', 'Risk', 'Status', 'Caseworker', 'Admission', 'Actions'].map(
-                (h) => (
-                  <th
-                    key={h}
-                    className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider"
-                  >
-                    {h}
-                  </th>
-                ),
-              )}
+              <th className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => residentsSort.toggleSort('case')} className="hover:text-brand-charcoal">Case{residentsSort.indicator('case')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => residentsSort.toggleSort('internalCode')} className="hover:text-brand-charcoal">Internal Code{residentsSort.indicator('internalCode')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => residentsSort.toggleSort('safehouse')} className="hover:text-brand-charcoal">Safehouse{residentsSort.indicator('safehouse')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => residentsSort.toggleSort('category')} className="hover:text-brand-charcoal">Category{residentsSort.indicator('category')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => residentsSort.toggleSort('risk')} className="hover:text-brand-charcoal">Risk{residentsSort.indicator('risk')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => residentsSort.toggleSort('status')} className="hover:text-brand-charcoal">Status{residentsSort.indicator('status')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => residentsSort.toggleSort('caseworker')} className="hover:text-brand-charcoal">Caseworker{residentsSort.indicator('caseworker')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => residentsSort.toggleSort('admission')} className="hover:text-brand-charcoal">Admission{residentsSort.indicator('admission')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-semibold text-brand-muted uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody>
             {!isLoading
-              && filtered.map((resident) => (
+              && residentsSort.sortedRows.map((resident) => (
                 <tr
                   key={resident.residentId}
                   className="hover:bg-brand-cream transition-colors border-b border-brand-border"

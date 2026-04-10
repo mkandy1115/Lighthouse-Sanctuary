@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import Modal from '@/components/ui/Modal'
 import { createSupporter, getSupporters, updateSupporter, type SupporterListItem } from '@/lib/staff'
 import { formatDate, formatUsdFromPhp } from '@/lib/formatters'
+import { useTableSort } from '@/lib/tableSort'
 import { looksUnsafe, sanitizeText, validateEmail } from '@/lib/validation'
 
 export default function StaffDonorListPage() {
@@ -45,6 +46,19 @@ export default function StaffDonorListPage() {
       || supporter.supporterType.toLowerCase().includes(q)
       || (supporter.email ?? '').toLowerCase().includes(q))
   }, [search, supporters])
+  const supportersSort = useTableSort<SupporterListItem, 'supporter' | 'type' | 'totalGiven' | 'lastGift' | 'status'>(
+    filtered,
+    (supporter, key) => {
+      switch (key) {
+        case 'supporter': return supporter.displayName
+        case 'type': return supporter.supporterType
+        case 'totalGiven': return supporter.totalGiven
+        case 'lastGift': return supporter.lastGiftDate ?? ''
+        case 'status': return supporter.status
+        default: return ''
+      }
+    },
+  )
 
   function resetForm() {
     setEditingId(null)
@@ -215,15 +229,36 @@ export default function StaffDonorListPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-border">
-              {['Supporter', 'Type', 'Total Given', 'Last Gift', 'Status', 'Actions'].map((h) => (
-                <th key={h} className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">
-                  {h}
-                </th>
-              ))}
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">
+                <button type="button" onClick={() => supportersSort.toggleSort('supporter')} className="hover:text-brand-charcoal">
+                  Supporter{supportersSort.indicator('supporter')}
+                </button>
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">
+                <button type="button" onClick={() => supportersSort.toggleSort('type')} className="hover:text-brand-charcoal">
+                  Type{supportersSort.indicator('type')}
+                </button>
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">
+                <button type="button" onClick={() => supportersSort.toggleSort('totalGiven')} className="hover:text-brand-charcoal">
+                  Total Given{supportersSort.indicator('totalGiven')}
+                </button>
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">
+                <button type="button" onClick={() => supportersSort.toggleSort('lastGift')} className="hover:text-brand-charcoal">
+                  Last Gift{supportersSort.indicator('lastGift')}
+                </button>
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">
+                <button type="button" onClick={() => supportersSort.toggleSort('status')} className="hover:text-brand-charcoal">
+                  Status{supportersSort.indicator('status')}
+                </button>
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {!isLoading && filtered.map((supporter) => (
+            {!isLoading && supportersSort.sortedRows.map((supporter) => (
               <tr key={supporter.supporterId} className="border-b border-brand-border/50 hover:bg-white transition-colors">
                 <td className="px-4 py-3">
                   <div className="font-medium text-brand-charcoal">{supporter.displayName}</div>

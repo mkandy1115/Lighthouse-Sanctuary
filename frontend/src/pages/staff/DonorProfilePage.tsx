@@ -9,6 +9,7 @@ import {
   type SupporterDetailResponse,
 } from '@/lib/staff'
 import { formatDate, formatUsdFromPhp } from '@/lib/formatters'
+import { useTableSort } from '@/lib/tableSort'
 import { ArrowLeft } from 'lucide-react'
 import { inRange, looksUnsafe, sanitizeText } from '@/lib/validation'
 
@@ -56,6 +57,34 @@ export default function StaffDonorProfilePage() {
     load()
   }, [id])
 
+  const donations = data?.donations ?? []
+  const allocations = data?.allocations ?? []
+  const donationsSort = useTableSort<(typeof donations)[number], 'date' | 'campaign' | 'amount' | 'type' | 'channel'>(
+    donations,
+    (donation, key) => {
+      switch (key) {
+        case 'date': return donation.donationDate ?? ''
+        case 'campaign': return donation.campaignName ?? 'Direct Giving'
+        case 'amount': return Number(donation.amount ?? donation.estimatedValue ?? 0)
+        case 'type': return donation.donationType ?? ''
+        case 'channel': return donation.channelSource ?? ''
+        default: return ''
+      }
+    },
+  )
+  const allocationsSort = useTableSort<(typeof allocations)[number], 'date' | 'programArea' | 'safehouse' | 'allocated'>(
+    allocations,
+    (allocation, key) => {
+      switch (key) {
+        case 'date': return allocation.allocationDate ?? ''
+        case 'programArea': return allocation.programArea ?? ''
+        case 'safehouse': return Number(allocation.safehouseId ?? 0)
+        case 'allocated': return Number(allocation.amountAllocated ?? 0)
+        default: return ''
+      }
+    },
+  )
+
   if (error) {
     return <div className="py-16 text-center text-rose-700">{error}</div>
   }
@@ -64,7 +93,7 @@ export default function StaffDonorProfilePage() {
     return <div className="py-16 text-center text-brand-muted">Loading supporter profile…</div>
   }
 
-  const { supporter, donations, allocations } = data
+  const { supporter } = data
   const totalGiven = donations.reduce((sum, donation) => sum + Number(donation.amount ?? donation.estimatedValue ?? 0), 0)
 
   async function handleCreateDonation(e: React.FormEvent<HTMLFormElement>) {
@@ -193,13 +222,15 @@ export default function StaffDonorProfilePage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-border">
-              {['Date', 'Campaign', 'Amount', 'Type', 'Channel'].map((h) => (
-                <th key={h} className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">{h}</th>
-              ))}
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => donationsSort.toggleSort('date')} className="hover:text-brand-charcoal">Date{donationsSort.indicator('date')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => donationsSort.toggleSort('campaign')} className="hover:text-brand-charcoal">Campaign{donationsSort.indicator('campaign')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => donationsSort.toggleSort('amount')} className="hover:text-brand-charcoal">Amount{donationsSort.indicator('amount')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => donationsSort.toggleSort('type')} className="hover:text-brand-charcoal">Type{donationsSort.indicator('type')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => donationsSort.toggleSort('channel')} className="hover:text-brand-charcoal">Channel{donationsSort.indicator('channel')}</button></th>
             </tr>
           </thead>
           <tbody>
-            {donations.map((donation, index) => (
+            {donationsSort.sortedRows.map((donation, index) => (
               <tr key={index} className="border-b border-brand-border/50 hover:bg-white transition-colors">
                 <td className="px-4 py-3 text-brand-muted">{donation.donationDate ? formatDate(String(donation.donationDate)) : '—'}</td>
                 <td className="px-4 py-3 text-brand-charcoal">{String(donation.campaignName ?? 'Direct Giving')}</td>
@@ -219,13 +250,14 @@ export default function StaffDonorProfilePage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-border">
-              {['Date', 'Program Area', 'Safehouse', 'Allocated'].map((h) => (
-                <th key={h} className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">{h}</th>
-              ))}
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => allocationsSort.toggleSort('date')} className="hover:text-brand-charcoal">Date{allocationsSort.indicator('date')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => allocationsSort.toggleSort('programArea')} className="hover:text-brand-charcoal">Program Area{allocationsSort.indicator('programArea')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => allocationsSort.toggleSort('safehouse')} className="hover:text-brand-charcoal">Safehouse{allocationsSort.indicator('safehouse')}</button></th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider"><button type="button" onClick={() => allocationsSort.toggleSort('allocated')} className="hover:text-brand-charcoal">Allocated{allocationsSort.indicator('allocated')}</button></th>
             </tr>
           </thead>
           <tbody>
-            {allocations.map((allocation, index) => (
+            {allocationsSort.sortedRows.map((allocation, index) => (
               <tr key={index} className="border-b border-brand-border/50 hover:bg-white transition-colors">
                 <td className="px-4 py-3 text-brand-muted">{allocation.allocationDate ? formatDate(String(allocation.allocationDate)) : '—'}</td>
                 <td className="px-4 py-3 text-brand-charcoal">{String(allocation.programArea ?? '—')}</td>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { formatDate } from '@/lib/formatters'
+import { useTableSort } from '@/lib/tableSort'
 import {
   getAdminUsers,
   type AdminUserListItem,
@@ -70,6 +71,19 @@ export default function AdminUsersPage() {
   const adminCount = useMemo(
     () => users.filter((user) => user.isActive && user.role === 'Admin').length,
     [users],
+  )
+  const usersSort = useTableSort<AdminUserListItem, 'name' | 'email' | 'role' | 'status' | 'created'>(
+    users,
+    (user, key) => {
+      switch (key) {
+        case 'name': return user.displayName
+        case 'email': return user.email ?? ''
+        case 'role': return user.role
+        case 'status': return user.isActive ? 1 : 0
+        case 'created': return user.createdAt
+        default: return ''
+      }
+    },
   )
 
   function handleOpenAddModal() {
@@ -235,9 +249,32 @@ export default function AdminUsersPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-border">
-              {['Name', 'Email', 'Role', 'Status', 'Created', 'Actions'].map((h) => (
-                <th key={h} scope="col" className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">{h}</th>
-              ))}
+              <th scope="col" className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">
+                <button type="button" onClick={() => usersSort.toggleSort('name')} className="hover:text-brand-charcoal">
+                  Name{usersSort.indicator('name')}
+                </button>
+              </th>
+              <th scope="col" className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">
+                <button type="button" onClick={() => usersSort.toggleSort('email')} className="hover:text-brand-charcoal">
+                  Email{usersSort.indicator('email')}
+                </button>
+              </th>
+              <th scope="col" className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">
+                <button type="button" onClick={() => usersSort.toggleSort('role')} className="hover:text-brand-charcoal">
+                  Role{usersSort.indicator('role')}
+                </button>
+              </th>
+              <th scope="col" className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">
+                <button type="button" onClick={() => usersSort.toggleSort('status')} className="hover:text-brand-charcoal">
+                  Status{usersSort.indicator('status')}
+                </button>
+              </th>
+              <th scope="col" className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">
+                <button type="button" onClick={() => usersSort.toggleSort('created')} className="hover:text-brand-charcoal">
+                  Created{usersSort.indicator('created')}
+                </button>
+              </th>
+              <th scope="col" className="text-left px-4 py-3 text-xs font-medium text-brand-muted uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -250,7 +287,7 @@ export default function AdminUsersPage() {
                 <td className="px-4 py-4 text-brand-muted" colSpan={6}>No users found.</td>
               </tr>
             ) : (
-              users.map((user) => {
+              usersSort.sortedRows.map((user) => {
                 const roleKey = user.role.toLowerCase()
                 return (
                   <tr key={user.id} className="border-b border-brand-border/50 hover:bg-white transition-colors">

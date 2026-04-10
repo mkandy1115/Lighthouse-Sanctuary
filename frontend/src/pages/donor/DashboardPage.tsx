@@ -14,6 +14,7 @@ import { clearAuthSession, getStoredAuthUser } from '@/lib/auth'
 import Modal from '@/components/ui/Modal'
 import { createDonorDonation, getDonorDashboard, type DonorDashboardData } from '@/lib/donor'
 import { convertPhpToUsd, convertUsdToPhp, formatCurrency, formatDate, formatPercent, formatUsdFromPhp, initials } from '@/lib/formatters'
+import { useTableSort } from '@/lib/tableSort'
 import { inRange, looksUnsafe, sanitizeText } from '@/lib/validation'
 
 const navItems = [
@@ -28,6 +29,20 @@ interface PaymentHistoryProps {
 }
 
 function PaymentHistory({ donations }: PaymentHistoryProps) {
+  const donationSort = useTableSort<DonorDashboardData['recentDonations'][number], 'date' | 'amount' | 'campaign' | 'allocation' | 'status'>(
+    donations,
+    (row, key) => {
+      switch (key) {
+        case 'date': return row.date
+        case 'amount': return row.amount
+        case 'campaign': return row.campaign
+        case 'allocation': return 'General Programs'
+        case 'status': return row.status
+        default: return ''
+      }
+    },
+  )
+
   return (
     <div className="animate-fade-in">
       <h2 className="font-serif text-2xl text-brand-charcoal mb-6">Payment History</h2>
@@ -35,15 +50,15 @@ function PaymentHistory({ donations }: PaymentHistoryProps) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-border bg-brand-stone">
-              <th className="text-left px-5 py-3 text-brand-muted font-medium">Date</th>
-              <th className="text-left px-5 py-3 text-brand-muted font-medium">Amount</th>
-              <th className="text-left px-5 py-3 text-brand-muted font-medium">Campaign</th>
-              <th className="text-left px-5 py-3 text-brand-muted font-medium">Allocation</th>
-              <th className="text-left px-5 py-3 text-brand-muted font-medium">Status</th>
+              <th className="text-left px-5 py-3 text-brand-muted font-medium"><button type="button" onClick={() => donationSort.toggleSort('date')} className="hover:text-brand-charcoal">Date{donationSort.indicator('date')}</button></th>
+              <th className="text-left px-5 py-3 text-brand-muted font-medium"><button type="button" onClick={() => donationSort.toggleSort('amount')} className="hover:text-brand-charcoal">Amount{donationSort.indicator('amount')}</button></th>
+              <th className="text-left px-5 py-3 text-brand-muted font-medium"><button type="button" onClick={() => donationSort.toggleSort('campaign')} className="hover:text-brand-charcoal">Campaign{donationSort.indicator('campaign')}</button></th>
+              <th className="text-left px-5 py-3 text-brand-muted font-medium"><button type="button" onClick={() => donationSort.toggleSort('allocation')} className="hover:text-brand-charcoal">Allocation{donationSort.indicator('allocation')}</button></th>
+              <th className="text-left px-5 py-3 text-brand-muted font-medium"><button type="button" onClick={() => donationSort.toggleSort('status')} className="hover:text-brand-charcoal">Status{donationSort.indicator('status')}</button></th>
             </tr>
           </thead>
           <tbody>
-            {donations.map((donation) => (
+            {donationSort.sortedRows.map((donation) => (
               <tr key={donation.donationId} className="border-b border-brand-border last:border-0 hover:bg-brand-cream transition-colors">
                 <td className="px-5 py-3.5 text-brand-charcoal">{formatDate(donation.date, 'short')}</td>
                 <td className="px-5 py-3.5 font-semibold text-brand-charcoal">
@@ -177,6 +192,18 @@ function PersonalImpact({ data }: ImpactViewProps) {
       }
     })
   }, [organizationImpact.campaignBreakdown, summary.totalGiven])
+  const recentSort = useTableSort<typeof recentDonations[number], 'date' | 'amount' | 'allocation' | 'dateUsed'>(
+    recentDonations,
+    (row, key) => {
+      switch (key) {
+        case 'date': return row.date
+        case 'amount': return row.amount
+        case 'allocation': return row.campaign
+        case 'dateUsed': return row.date
+        default: return ''
+      }
+    },
+  )
 
   return (
     <div className="space-y-6">
@@ -296,14 +323,14 @@ function PersonalImpact({ data }: ImpactViewProps) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-border bg-brand-stone/50">
-              <th className="text-left px-5 py-3 text-brand-muted font-medium text-xs">Date</th>
-              <th className="text-left px-5 py-3 text-brand-muted font-medium text-xs">Amount</th>
-              <th className="text-left px-5 py-3 text-brand-muted font-medium text-xs">Allocation</th>
-              <th className="text-left px-5 py-3 text-brand-muted font-medium text-xs">Date Used</th>
+              <th className="text-left px-5 py-3 text-brand-muted font-medium text-xs"><button type="button" onClick={() => recentSort.toggleSort('date')} className="hover:text-brand-charcoal">Date{recentSort.indicator('date')}</button></th>
+              <th className="text-left px-5 py-3 text-brand-muted font-medium text-xs"><button type="button" onClick={() => recentSort.toggleSort('amount')} className="hover:text-brand-charcoal">Amount{recentSort.indicator('amount')}</button></th>
+              <th className="text-left px-5 py-3 text-brand-muted font-medium text-xs"><button type="button" onClick={() => recentSort.toggleSort('allocation')} className="hover:text-brand-charcoal">Allocation{recentSort.indicator('allocation')}</button></th>
+              <th className="text-left px-5 py-3 text-brand-muted font-medium text-xs"><button type="button" onClick={() => recentSort.toggleSort('dateUsed')} className="hover:text-brand-charcoal">Date Used{recentSort.indicator('dateUsed')}</button></th>
             </tr>
           </thead>
           <tbody>
-            {recentDonations.map((donation) => (
+            {recentSort.sortedRows.map((donation) => (
               <tr key={donation.donationId} className="border-b border-brand-border last:border-0 hover:bg-brand-cream transition-colors">
                 <td className="px-5 py-3 text-brand-charcoal">{formatDate(donation.date, 'short')}</td>
                 <td className="px-5 py-3 font-semibold text-brand-charcoal">{formatUsdFromPhp(donation.amount)}</td>
