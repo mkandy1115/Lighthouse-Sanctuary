@@ -110,7 +110,6 @@ export default function CaseListPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [safehouseFilter, setSafehouseFilter] = useState('all')
-  const [categoryFilter, setCategoryFilter] = useState('all')
   const [riskFilter, setRiskFilter] = useState('all')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(true)
@@ -157,15 +156,12 @@ export default function CaseListPage() {
         || (resident.assignedSocialWorker ?? '').toLowerCase().includes(q)
       const matchesStatus = statusFilter === 'all' || resident.caseStatus === statusFilter
       const matchesSafehouse = safehouseFilter === 'all' || resident.safehouseName === safehouseFilter
-      const matchesCategory = categoryFilter === 'all' || resident.caseCategory === categoryFilter
       const matchesRisk = riskFilter === 'all' || resident.currentRiskLevel === riskFilter
-      return matchesSearch && matchesStatus && matchesSafehouse && matchesCategory && matchesRisk
+      return matchesSearch && matchesStatus && matchesSafehouse && matchesRisk
     })
-  }, [categoryFilter, residents, riskFilter, safehouseFilter, search, statusFilter])
+  }, [residents, riskFilter, safehouseFilter, search, statusFilter])
 
   const safehouseNames = Array.from(new Set(residents.map((resident) => resident.safehouseName))).sort()
-  const categories = Array.from(new Set(residents.map((resident) => resident.caseCategory).filter(Boolean))) as string[]
-
   function openCreateModal() {
     setForm((f) => ({
       ...emptyCreateForm(),
@@ -716,18 +712,6 @@ export default function CaseListPage() {
           {safehouseNames.map((name) => (
             <option key={name} value={name}>
               {name}
-            </option>
-          ))}
-        </select>
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          className="rounded-lg border border-brand-border bg-white px-4 py-3 text-sm text-brand-charcoal"
-        >
-          <option value="all">All categories</option>
-          {categories.map((category) => (
-            <option key={category} value={category}>
-              {category}
             </option>
           ))}
         </select>
