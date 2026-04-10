@@ -6,6 +6,7 @@ public class DonorDashboardResponse
     public DonorSummaryDto Summary { get; set; } = new();
     public List<DonorMonthlyGivingPointDto> MonthlyGiving { get; set; } = [];
     public List<DonorDonationDto> RecentDonations { get; set; } = [];
+    public List<OrganizationCampaignBreakdownDto> PersonalCampaignBreakdown { get; set; } = [];
     public DonorOrganizationImpactDto OrganizationImpact { get; set; } = new();
     public DonorImpactPredictionDto? ImpactPrediction { get; set; }
 }

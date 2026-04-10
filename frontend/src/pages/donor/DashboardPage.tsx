@@ -172,13 +172,13 @@ function ImpactView({ data }: ImpactViewProps) {
 }
 
 function PersonalImpact({ data }: ImpactViewProps) {
-  const { profile, summary, monthlyGiving, recentDonations, organizationImpact, impactPrediction } = data
+  const { profile, summary, monthlyGiving, recentDonations, personalCampaignBreakdown, impactPrediction } = data
 
   const personalAllocation = useMemo(() => {
     const total = summary.totalGiven || 0
     const palette = ['#2D8A8A', '#92642A', '#6B8F71', '#A8A29E', '#7899C0']
     const icons = [Home, Heart, BookOpen, Settings, Globe]
-    const source = organizationImpact.campaignBreakdown.slice(0, 5)
+    const source = (personalCampaignBreakdown ?? []).slice(0, 5)
     if (source.length === 0 || total <= 0) return []
 
     return source.map((slice: { label: string; totalAmount: number }, index: number) => {
@@ -191,7 +191,7 @@ function PersonalImpact({ data }: ImpactViewProps) {
         amount: Math.round(slice.totalAmount),
       }
     })
-  }, [organizationImpact.campaignBreakdown, summary.totalGiven])
+  }, [personalCampaignBreakdown, summary.totalGiven])
   const recentSort = useTableSort<typeof recentDonations[number], 'date' | 'amount' | 'allocation' | 'dateUsed'>(
     recentDonations,
     (row, key) => {

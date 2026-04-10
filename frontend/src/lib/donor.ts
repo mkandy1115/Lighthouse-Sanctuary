@@ -63,6 +63,7 @@ export interface DonorDashboardData {
   summary: DonorSummary
   monthlyGiving: DonorMonthlyGivingPoint[]
   recentDonations: DonorDonation[]
+  personalCampaignBreakdown: OrganizationCampaignBreakdown[]
   organizationImpact: DonorOrganizationImpact
   impactPrediction?: {
     impactScore: number

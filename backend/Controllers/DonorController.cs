@@ -129,6 +129,17 @@ public class DonorController(LighthouseContext context) : ControllerBase
                 Amount = group.Sum(donation => donation.Amount ?? 0m)
             })
             .ToList();
+        var personalCampaignBreakdown = donations
+            .GroupBy(donation => string.IsNullOrWhiteSpace(donation.CampaignName) ? "Direct Giving" : donation.CampaignName!)
+            .Select(group => new OrganizationCampaignBreakdownDto
+            {
+                Label = group.Key,
+                TotalAmount = group.Sum(donation => donation.Amount ?? 0m),
+                DonationCount = group.Count()
+            })
+            .OrderByDescending(group => group.TotalAmount)
+            .Take(5)
+            .ToList();
 
         var allMonetaryDonations = await context.Donations
             .AsNoTracking()
@@ -206,7 +217,7 @@ public class DonorController(LighthouseContext context) : ControllerBase
                 HasRecurringGift = donations.Any(donation => donation.IsRecurring),
                 CounselingSessionsFunded = (int)Math.Floor(totalGiven / 200m),
                 MonthsHousingFunded = (int)Math.Floor(totalGiven / 2500m),
-                ResidentsHelpedEstimate = Math.Max(1, (int)Math.Floor(totalGiven / 1500m))
+                ResidentsHelpedEstimate = totalGiven <= 0m ? 0 : Math.Max(1, (int)Math.Floor(totalGiven / 1500m))
             },
             MonthlyGiving = monthlyGiving,
             RecentDonations = donations
@@ -221,6 +232,7 @@ public class DonorController(LighthouseContext context) : ControllerBase
                     Status = "Completed"
                 })
                 .ToList(),
+            PersonalCampaignBreakdown = personalCampaignBreakdown,
             OrganizationImpact = new DonorOrganizationImpactDto
             {
                 ActiveSupporters = activeSupporters,
