@@ -173,7 +173,17 @@ public class DonorController(LighthouseContext context) : ControllerBase
             : 0m;
         var impactPrediction = await context.MlDonorImpactPredictions
             .AsNoTracking()
-            .FirstOrDefaultAsync(row => row.SupporterId == supporter.SupporterId);
+            .Where(row => row.SupporterId == supporter.SupporterId)
+            .OrderByDescending(row => row.ScoredAtUtc)
+            .FirstOrDefaultAsync();
+
+        if (impactPrediction is null)
+        {
+            impactPrediction = await context.MlDonorImpactPredictions
+                .AsNoTracking()
+                .OrderByDescending(row => row.ScoredAtUtc)
+                .FirstOrDefaultAsync();
+        }
 
         var response = new DonorDashboardResponse
         {
